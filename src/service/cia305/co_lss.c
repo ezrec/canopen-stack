@@ -46,7 +46,8 @@ static const CO_LSS_MAP COLssServices[CO_LSS_MAX_SID] = {
     {  73 , CO_LSS_WAIT | CO_LSS_CONF, COLssIdentifyRemoteSlave_RevMax },
     {  74 , CO_LSS_WAIT | CO_LSS_CONF, COLssIdentifyRemoteSlave_SerMin },
     {  75 , CO_LSS_WAIT | CO_LSS_CONF, COLssIdentifyRemoteSlave_SerMax },
-    {  76 , CO_LSS_WAIT | CO_LSS_CONF, COLssNonConfiguredRemoteSlave }
+    {  76 , CO_LSS_WAIT | CO_LSS_CONF, COLssNonConfiguredRemoteSlave },
+    {  81,  CO_LSS_WAIT | CO_LSS_CONF, COLssFastscan },
 };
 
 static const uint32_t CO_LssBaudTbl[CO_LSS_MAX_BAUD] = {
@@ -292,6 +293,12 @@ int16_t COLssConfigureNodeId(CO_LSS *lss, CO_IF_FRM *frm)
     nodeId = CO_GET_BYTE(frm, 1);
     if ( ((nodeId >= 1) && (nodeId <= 127)) || (nodeId == 0xFF) ) {
         lss->CfgNodeId = nodeId;
+
+        // If in CO_INIT mode, set the active node ID
+        CO_MODE mode = CONmtGetMode(&lss->Node->Nmt);
+        if (mode == CO_INIT) {
+            CONmtSetNodeId(&lss->Node->Nmt, nodeId);
+        }
         CO_SET_BYTE(frm, 0, 1);
     } else {
         CO_SET_BYTE(frm, 1, 1);
@@ -305,7 +312,7 @@ int16_t COLssStoreConfiguration(CO_LSS *lss, CO_IF_FRM *frm)
 {
     CO_ERR err;
 
-    err = COLssStore(lss->CfgBaudrate, lss->CfgNodeId);
+    err = COLssStore(lss, lss->CfgBaudrate, lss->CfgNodeId);
     if (err == CO_ERR_NONE) {
         lss->Flags |= CO_LSS_STORED;
         CO_SET_BYTE(frm, 0, 1);
@@ -506,4 +513,51 @@ int16_t COLssNonConfiguredRemoteSlave(CO_LSS *lss, CO_IF_FRM *frm)
     }
     return result;
 }
+
+int16_t COLssFastscan(CO_LSS *lss, CO_IF_FRM *frm)
+{
+    CO_NODE *node;
+    int16_t  result = -1;
+
+    node = lss->Node;
+    if (node->NodeId == (uint8_t)0xff) {
+        bool respond = false;
+        uint32_t ident = 0;
+        uint32_t id_number = CO_GET_LONG(frm, 1);
+        uint8_t bit_check = CO_GET_BYTE(frm, 5);
+        uint8_t lss_sub = CO_GET_BYTE(frm, 6);
+        uint8_t lss_next = CO_GET_BYTE(frm, 7);
+        if (bit_check == 0x80) {
+            // Reset the state, and leave the CO_LSS_CONF mode if we are in it.
+            lss->Pos = CO_LSS_POS_VENDOR_ID;
+            lss->Mode = CO_LSS_WAIT;
+            respond = true;
+        } else if (lss->Pos == lss_sub) {
+            CO_ERR err = CODictRdLong(&node->Dict, CO_DEV(0x1018, (1 + lss_sub)), &ident);
+            if (err == CO_ERR_NONE) {
+                uint32_t check_mask = (0xffffffff << bit_check);
+                // Do we match the ident?
+                if ((check_mask & id_number) == (check_mask & ident)) {
+                    lss->Pos = lss_next;
+                    // We're the one that is selected!
+                    if (bit_check == 0 && lss_next < lss_sub) {
+                        lss->Mode = CO_LSS_CONF;
+                    }
+                    respond = true;
+                }
+            }
+        }
+
+        if (respond) {
+            CO_SET_LONG(frm, 0L, 0);
+            CO_SET_LONG(frm, 0L, 4);
+            CO_SET_BYTE(frm, CO_LSS_RES_SLAVE, 0);
+            CO_SET_ID(frm, CO_LSS_TX_ID);
+            result = 1;
+        }
+    }
+
+    return result;
+}
+
 #endif //USE_LSS

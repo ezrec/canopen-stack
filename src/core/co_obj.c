@@ -68,8 +68,15 @@ CO_ERR COObjRdBufStart(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint8_t *bu
 
     type = obj->Type;
     if (type->Read != NULL) {
+        /* mandatory: reset object */
         (void)COObjReset(obj, node, 0);
-        result = type->Read(obj, node, (void *)buffer, size);
+
+        /* optional: read from object */
+        if (size > 0) {
+            result = type->Read(obj, node, (void *)buffer, size);
+        } else {
+            result = CO_ERR_NONE;
+        }
     }
     return (result);
 }
@@ -91,7 +98,7 @@ CO_ERR COObjRdBufCont(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint8_t *buf
     return (result);
 }
 
-CO_ERR COObjWrBufStart(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint8_t *buffer, uint32_t size)
+CO_ERR COObjWrBufStart(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const uint8_t *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *type;
     CO_ERR result = CO_ERR_OBJ_ACC;
@@ -103,13 +110,24 @@ CO_ERR COObjWrBufStart(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint8_t *bu
 
     type = obj->Type;
     if (type->Write != NULL) {
+        /* mandatory: reset object */
         (void)COObjReset(obj, node, 0);
-        result = type->Write(obj, node, (void *)buffer, size);
+
+        /* optional: write to object */
+        if (size > 0) {
+            result = type->Write(obj, node, (void *)buffer, size);
+            if (result == CO_ERR_NONE) {
+                COObjUpdated(obj, node);
+            }
+        } else {
+            result = CO_ERR_NONE;
+        }
     }
+
     return (result);
 }
 
-CO_ERR COObjWrBufCont(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint8_t *buffer, uint32_t size)
+CO_ERR COObjWrBufCont(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const uint8_t *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *type;
     CO_ERR result = CO_ERR_OBJ_ACC;
@@ -121,7 +139,10 @@ CO_ERR COObjWrBufCont(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint8_t *buf
 
     type = obj->Type;
     if (type->Write != NULL) {
-        result = type->Write(obj, node, (void *)buffer, size);
+        result = type->Write(obj, node, (const void *)buffer, size);
+        if (result == CO_ERR_NONE) {
+            COObjUpdated(obj, node);
+        }
     }
     return (result);
 }
@@ -160,7 +181,7 @@ uint32_t COObjGetSize(struct CO_OBJ_T *obj, CO_NODE *node, uint32_t width)
     return (result);
 }
 
-CO_ERR COObjRdValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, uint8_t width)
+CO_ERR COObjRdValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, uint32_t width)
 {
     const CO_OBJ_TYPE *type;
     CO_ERR result = CO_ERR_OBJ_ACC;
@@ -177,7 +198,7 @@ CO_ERR COObjRdValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, u
     return(result);
 }
 
-CO_ERR COObjWrValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, uint8_t width)
+CO_ERR COObjWrValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *value, uint32_t width)
 {
     const CO_OBJ_TYPE *type;
     CO_ERR result = CO_ERR_OBJ_ACC;
@@ -190,6 +211,9 @@ CO_ERR COObjWrValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, u
     type = obj->Type;
     if (type->Write != NULL) {
         result = type->Write(obj, node, value, width);
+        if (result == CO_ERR_NONE) {
+            COObjUpdated(obj, node);
+        }
     }
     return (result);
 }

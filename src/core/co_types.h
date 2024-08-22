@@ -29,7 +29,6 @@
 * PUBLIC MACROS
 ******************************************************************************/
 
-#ifdef _DEBUG
 /* For unit testing and debug builds, the marked implementation of functions
  * are included as weak symbol in the CANopen library. This weak symbols help
  * us to improve testability by allowing stubbing functions in the test cases
@@ -38,9 +37,7 @@
 #ifndef WEAK_TEST
 #define WEAK_TEST    __attribute__((weak))
 #endif
-#else
-#define WEAK_TEST
-#endif
+
 #define WEAK    __attribute__((weak))
 
 #define CO_UNUSED(var)    (void)(var)
@@ -67,9 +64,9 @@
     if ((void*)(ptr) == NULL) { return; }
 
 #define ASSERT_PTR_FATAL(ptr)    \
-    if ((void*)(ptr) == NULL) { CONodeFatalError(); return; }
+    if ((void*)(ptr) == NULL) { CONodeFatalError(NULL); return; }
 
 #define ASSERT_PTR_FATAL_ERR(ptr, err)    \
-    if ((void*)(ptr) == NULL) { CONodeFatalError(); return(err); }
+    if ((void*)(ptr) == NULL) { CONodeFatalError(NULL); return(err); }
 
 #endif /* ifndef CO_TYPES_H_ */

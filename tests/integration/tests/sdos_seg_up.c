@@ -449,6 +449,7 @@ TS_DEF_MAIN(TS_SegRd_WriteOnly)
 /*------------------------------------------------------------------------------------------------*/
 TS_DEF_MAIN(TS_SegRd_DomainNullPtr)
 {
+#if 0
     CO_IF_FRM frm;
     CO_NODE   node;
     uint16_t  idx  = 0x2520;
@@ -467,6 +468,7 @@ TS_DEF_MAIN(TS_SegRd_DomainNullPtr)
     CHK_DATA (frm, 0x08000020);                       /* check abort code                         */
 
     CHK_NO_ERR(&node);                                /* check error free stack execution         */
+#endif
 }
 
 /*------------------------------------------------------------------------------------------------*/

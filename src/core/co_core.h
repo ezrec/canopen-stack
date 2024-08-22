@@ -55,6 +55,7 @@ extern "C" {
 #include "co_dict.h"
 #include "co_if.h"
 #include "co_emcy.h"
+#include "co_hooks.h"
 #include "co_nmt.h"
 #include "co_tmr.h"
 #include "co_sdo.h"
@@ -99,7 +100,7 @@ typedef struct CO_NODE_T {
     enum   CO_ERR_T        Error;                /*!< detected error code    */
     uint32_t               Baudrate;             /*!< default CAN baudrate   */
     uint8_t                NodeId;               /*!< default Node-ID        */
-
+    struct CO_HOOKS_T      Hooks;                /*!< Callback hooks         */
 } CO_NODE;
 
 /*! \brief NODE SPECIFICATION
@@ -118,7 +119,7 @@ typedef struct CO_NODE_SPEC_T {
     uint32_t               TmrFreq;      /*!< timer clock frequency in Hz    */
     CO_IF_DRV             *Drv;          /*!< linked interface drivers       */
     uint8_t               *SdoBuf;       /*!< SDO Transfer Buffer Memory     */
-
+    struct CO_HOOKS_T      Hooks;        /*!< Callback hooks                 */
 } CO_NODE_SPEC;
 
 /******************************************************************************
@@ -203,8 +204,12 @@ void CONodeProcess(CO_NODE *node);
 *    stack, and no way out of the situation ('panic'). The function is
 *    intended to allow the implementation of a pre-defined shutdown sequence
 *    and setting the device in a safe state.
+*
+* \param node
+*    Ptr to node info
+*
 */
-extern void CONodeFatalError(void);
+extern void CONodeFatalError(CO_NODE *node);
 
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }

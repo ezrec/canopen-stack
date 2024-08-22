@@ -128,12 +128,8 @@ void COTPdoReset(CO_TPDO *pdo, uint16_t num)
         pdo->Node->Error = CO_ERR_TPDO_COM_OBJ;
         return;
     }
-    if ((id & CO_TPDO_COBID_EXT) != 0) {
-        pdo->Node->Error = CO_ERR_TPDO_COM_OBJ;
-        return;
-    }
     if ((id & CO_TPDO_COBID_OFF) == 0) {
-        pdo[num].Identifier = (id & 0x1FFFFFFF);
+        pdo[num].Identifier = (id & (0x1FFFFFFF | CO_TPDO_COBID_EXT));
     } else {
         pdo[num].Identifier = CO_TPDO_COBID_OFF;
     }
@@ -189,7 +185,7 @@ CO_ERR COTPdoGetMap (CO_TPDO *pdo, uint16_t num)
 
         size = (uint8_t)(mapping & 0xFF) >> 3;
         dlc += size;
-        if (dlc > 8) {
+        if (dlc > 64) {
             return (CO_ERR_TPDO_MAP_OBJ);
         }
         obj = CODictFind(&pdo->Node->Dict, mapping);
@@ -272,6 +268,10 @@ void COTPdoTx(CO_TPDO *pdo)
     uint32_t   data;
     uint8_t    num;
 
+    if (pdo->Identifier == CO_TPDO_COBID_OFF) {
+        return;
+    }
+
     if ((pdo->Node->Nmt.Allowed & CO_PDO_ALLOWED) == 0) {
         return;
     }
@@ -313,7 +313,7 @@ void COTPdoTx(CO_TPDO *pdo)
         if (pdosz <= 4) {
             /* supported mapping: 1 to 4 bytes */
             sz = COObjGetSize(pdo->Map[num], pdo->Node, 0L);
-            if (sz <= (uint32_t)(8 - frm.DLC)) {
+            if (sz <= (uint32_t)(64 - frm.DLC)) {
                 if (pdosz == 3) {
                     /* for 3bytes, read a basic 32bit type */
                     COObjRdValue(pdo->Map[num], pdo->Node, &data, 4u);
@@ -335,11 +335,11 @@ void COTPdoTx(CO_TPDO *pdo)
                 frm.DLC += pdosz;
             }
         } else {
-            COTpdoReadData(&frm, frm.DLC, pdosz, pdo->Map[num]);
+            COTpdoReadData(pdo, &frm, frm.DLC, pdosz, pdo->Map[num]);
         }
     }
 
-    COPdoTransmit(&frm);
+    COPdoTransmit(pdo, &frm);
     (void)COIfCanSend(&pdo->Node->If, &frm);
 }
 
@@ -444,12 +444,8 @@ CO_ERR CORPdoReset(CO_RPDO *pdo, uint16_t num)
         pdo->Node->Error = CO_ERR_RPDO_COM_OBJ;
         return (CO_ERR_RPDO_COM_OBJ);
     }
-    if ((id & CO_RPDO_COBID_EXT) != 0) {
-        pdo->Node->Error = CO_ERR_RPDO_COM_OBJ;
-        return (CO_ERR_RPDO_COM_OBJ);
-    }
     if ((id & CO_RPDO_COBID_OFF) == 0) {
-        pdo[num].Identifier = (id & 0x1FFFFFFF);
+        pdo[num].Identifier = (id & (0x1FFFFFFF | CO_RPDO_COBID_EXT));
         pdo[num].Flag       = CO_RPDO_FLG__E;
         if (type <= 240) {
             pdo[num].Flag  |= CO_RPDO_FLG_S_;
@@ -484,7 +480,6 @@ CO_ERR CORPdoGetMap(CO_RPDO *pdo, uint16_t num)
     uint8_t   mapnum;
     uint8_t   dlc;
     uint8_t   size;
-    uint8_t   dummy = 0;
 
     cod = &pdo[num].Node->Dict;
     idx = 0x1600 + num;
@@ -502,38 +497,24 @@ CO_ERR CORPdoGetMap(CO_RPDO *pdo, uint16_t num)
 
         size = (uint8_t)(mapping & 0xFF) >> 3;
         dlc += size;
-        if (dlc > 8) {
+        if (dlc > 64) {
             return (CO_ERR_RPDO_MAP_OBJ);
         }
         link = mapping >> 16;
-        if ((link == 2) || (link == 5)) {
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
-        } else if ((link == 3) || (link == 6)) {
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
-        } else if ((link == 4) || (link == 7)) {
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
-            pdo[num].Map[on + dummy] = 0;
-            dummy++;
+        if ((link == 2) || (link <= 7)) {
+            pdo[num].Map[on] = 0;
+            pdo[num].Size[on] = size;
         } else {
             obj = CODictFind(&pdo->Node->Dict, mapping);
             if (obj == 0) {
                 return (CO_ERR_RPDO_MAP_OBJ);
             } else {
-                pdo[num].Map[on + dummy] = obj;
-                pdo[num].Size[on + dummy] = size;
+                pdo[num].Map[on] = obj;
+                pdo[num].Size[on] = size;
             }
         }
     }
-    pdo[num].ObjNum = mapnum + dummy;
+    pdo[num].ObjNum = mapnum;
     return (CO_ERR_NONE);
 }
 
@@ -541,7 +522,7 @@ void CORPdoRx(CO_RPDO *pdo, CO_IF_FRM *frm)
 {
     int16_t err = 0;
 
-    err = COPdoReceive(frm);
+    err = COPdoReceive(pdo, frm);
     if (err == 0) {
         if ((pdo->Flag & CO_RPDO_FLG_S_) == 0) {
             CORPdoWrite(pdo, frm);
@@ -604,8 +585,10 @@ void CORPdoWrite(CO_RPDO *pdo, CO_IF_FRM *frm)
                     COObjWrValue(obj, pdo->Node, (void *)&val32, sz);
                 }
             } else {
-                CORpdoWriteData(frm, dlc, pdosz, obj);
+                CORpdoWriteData(pdo, frm, dlc, pdosz, obj);
             }
+        } else {
+            dlc += pdosz;
         }
     }
 }

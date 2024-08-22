@@ -30,12 +30,12 @@ static uint32_t TimerCounter = 0u;
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void     DrvTimerInit   (uint32_t freq);
-static void     DrvTimerStart  (void);
-static uint8_t  DrvTimerUpdate (void);
-static uint32_t DrvTimerDelay  (void);
-static void     DrvTimerReload (uint32_t reload);
-static void     DrvTimerStop   (void);
+static void     DrvTimerInit   (CO_IF *co_if, uint32_t freq);
+static void     DrvTimerStart  (CO_IF *co_if);
+static uint8_t  DrvTimerUpdate (CO_IF *co_if);
+static uint32_t DrvTimerDelay  (CO_IF *co_if);
+static void     DrvTimerReload (CO_IF *co_if, uint32_t reload);
+static void     DrvTimerStop   (CO_IF *co_if);
 
 /******************************************************************************
 * PUBLIC VARIABLE
@@ -54,17 +54,17 @@ const CO_IF_TIMER_DRV SwCycleTimerDriver = {
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void DrvTimerInit(uint32_t freq)
+static void DrvTimerInit(CO_IF *co_if, uint32_t freq)
 {
     (void)freq;
     TimerCounter = 0u;
 }
 
-static void DrvTimerStart(void)
+static void DrvTimerStart(CO_IF *co_if)
 {
 }
 
-static uint8_t DrvTimerUpdate(void)
+static uint8_t DrvTimerUpdate(CO_IF *co_if)
 {
     uint8_t result = 0u;
 
@@ -78,17 +78,17 @@ static uint8_t DrvTimerUpdate(void)
     return (result);
 }
 
-static uint32_t DrvTimerDelay(void)
+static uint32_t DrvTimerDelay(CO_IF *co_if)
 {
     return (TimerCounter);
 }
 
-static void DrvTimerReload(uint32_t reload)
+static void DrvTimerReload(CO_IF *co_if, uint32_t reload)
 {
     TimerCounter = reload;
 }
 
-static void DrvTimerStop(void)
+static void DrvTimerStop(CO_IF *co_if)
 {
     TimerCounter = 0u;
 }

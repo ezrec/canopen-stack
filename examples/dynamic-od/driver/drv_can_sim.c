@@ -60,12 +60,12 @@ static SIM_CAN_BUS CanBus = { 0u };
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void    DrvCanInit   (void);
-static void    DrvCanEnable (uint32_t baudrate);
-static int16_t DrvCanSend   (CO_IF_FRM *frm);
-static int16_t DrvCanRead   (CO_IF_FRM *frm);
-static void    DrvCanReset  (void);
-static void    DrvCanClose  (void);
+static void    DrvCanInit   (CO_IF *cif);
+static void    DrvCanEnable (CO_IF *cif, uint32_t baudrate);
+static int16_t DrvCanSend   (CO_IF *cif, CO_IF_FRM *frm);
+static int16_t DrvCanRead   (CO_IF *cif, CO_IF_FRM *frm);
+static void    DrvCanReset  (CO_IF *cif);
+static void    DrvCanClose  (CO_IF *cif);
 
 /******************************************************************************
 * PUBLIC VARIABLE
@@ -84,7 +84,7 @@ const CO_IF_CAN_DRV SimCanDriver = {
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void DrvCanInit(void)
+static void DrvCanInit(CO_IF *cif)
 {
     SIM_CAN_BUS *bus = &CanBus;
 
@@ -103,7 +103,7 @@ static void DrvCanInit(void)
     bus->TxRd     = &bus->TxQ[0u];
 }
 
-static void DrvCanEnable(uint32_t baudrate)
+static void DrvCanEnable(CO_IF *cif, uint32_t baudrate)
 {
     SIM_CAN_BUS *bus = &CanBus;
 
@@ -111,7 +111,7 @@ static void DrvCanEnable(uint32_t baudrate)
     bus->Baudrate  = baudrate;
 }
 
-static int16_t DrvCanSend(CO_IF_FRM *frm)
+static int16_t DrvCanSend(CO_IF *cif, CO_IF_FRM *frm)
 {
     int16_t       result = 0u;
     SIM_CAN_BUS  *bus    = &CanBus;;
@@ -145,7 +145,7 @@ static int16_t DrvCanSend(CO_IF_FRM *frm)
     return (result);
 }
 
-static int16_t DrvCanRead (CO_IF_FRM *frm)
+static int16_t DrvCanRead (CO_IF *cif, CO_IF_FRM *frm)
 {
     int16_t       result = 0u;
     SIM_CAN_BUS  *bus    = &CanBus;
@@ -177,16 +177,16 @@ static int16_t DrvCanRead (CO_IF_FRM *frm)
     return (result);
 }
 
-static void DrvCanReset(void)
+static void DrvCanReset(CO_IF *cif)
 {
     SIM_CAN_BUS *bus      = &CanBus;
     uint32_t     baudrate = bus->Baudrate;
 
-    DrvCanInit();
-    DrvCanEnable(baudrate);
+    DrvCanInit(cif);
+    DrvCanEnable(cif, baudrate);
 }
 
-static void DrvCanClose(void)
+static void DrvCanClose(CO_IF *cif)
 {
     SIM_CAN_BUS *bus = &CanBus;
 

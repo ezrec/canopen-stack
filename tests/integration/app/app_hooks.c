@@ -39,17 +39,18 @@ void TS_CallbackInit(TS_CALLBACK *cb)
 
     TsCallbacks = cb;
 
+    cb->NodeFatalError_ArgNode = 0;
     cb->NodeFatalError_Called = 0;
 
-    cb->TmrLock_Called = 0;
-    cb->TmrUnlock_Called = 0;
-
+    cb->IfCanReceive_ArgIf = 0;
     cb->IfCanReceive_ArgFrm = 0;
     cb->IfCanReceive_Called = 0;
 
+    cb->PdoTransmit_ArgTpdo = 0;
     cb->PdoTransmit_ArgFrm = 0;
     cb->PdoTransmit_Called = 0;
 
+    cb->PdoReceive_ArgRpdo = 0;
     cb->PdoReceive_ArgFrm = 0;
     cb->PdoReceive_Called = 0;
     cb->PdoReceive_Return = 0;
@@ -71,11 +72,13 @@ void TS_CallbackInit(TS_CALLBACK *cb)
     cb->NmtHbConsChange_ArgState = CO_INVALID;
     cb->NmtHbConsChange_Called = 0;
 
+    cb->LssStore_ArgLss = 0;
     cb->LssStore_ArgBaudrate = 0;
     cb->LssStore_ArgNodeId = 0;
     cb->LssStore_Called = 0;
     cb->LssStore_Return = CO_ERR_NONE;
 
+    cb->LssLoad_ArgLss = 0;
     cb->LssLoad_ArgBaudrate = 0;
     cb->LssLoad_ArgNodeId = 0;
     cb->LssLoad_Called = 0;
@@ -115,48 +118,38 @@ void TS_CallbackDeInit(void)
 * PUBLIC CALLBACKS
 ******************************************************************************/
 
-void CONodeFatalError(void)
+void CONodeFatalError(CO_NODE *node)
 {
     if (TsCallbacks != 0) {
+        TsCallbacks->NodeFatalError_ArgNode = node;
         TsCallbacks->NodeFatalError_Called++;
     }
 }
 
-void COTmrLock(void)
+void COIfCanReceive(CO_IF *cif, CO_IF_FRM *frm)
 {
     if (TsCallbacks != 0) {
-        TsCallbacks->TmrLock_Called++;
-    }
-}
-
-void COTmrUnlock(void)
-{
-    if (TsCallbacks != 0) {
-        TsCallbacks->TmrUnlock_Called++;
-    }
-}
-
-void COIfCanReceive(CO_IF_FRM *frm)
-{
-    if (TsCallbacks != 0) {
+        TsCallbacks->IfCanReceive_ArgIf = cif;
         TsCallbacks->IfCanReceive_ArgFrm = frm;
         TsCallbacks->IfCanReceive_Called++;
     }
 }
 
-void COPdoTransmit(CO_IF_FRM *frm)
+void COPdoTransmit(CO_TPDO *tpdo, CO_IF_FRM *frm)
 {
     if (TsCallbacks != 0) {
+        TsCallbacks->PdoTransmit_ArgTpdo = tpdo;
         TsCallbacks->PdoTransmit_ArgFrm = frm;
         TsCallbacks->PdoTransmit_Called++;
     }
 }
 
-int16_t COPdoReceive(CO_IF_FRM *frm)
+int16_t COPdoReceive(CO_RPDO *rpdo, CO_IF_FRM *frm)
 {
     int16_t result = CO_ERR_NONE;
 
     if (TsCallbacks != 0) {
+        TsCallbacks->PdoReceive_ArgRpdo = rpdo;
         TsCallbacks->PdoReceive_ArgFrm = frm;
         TsCallbacks->PdoReceive_Called++;
         result = TsCallbacks->PdoReceive_Return;
@@ -202,7 +195,7 @@ void CONmtHbConsChange(CO_NMT *nmt, uint8_t nodeId, CO_MODE state)
     }
 }
 
-CO_ERR COLssStore(uint32_t baudrate, uint8_t nodeId)
+CO_ERR COLssStore(CO_LSS *lss, uint32_t baudrate, uint8_t nodeId)
 {
     CO_ERR result = CO_ERR_NONE;
 
@@ -210,6 +203,7 @@ CO_ERR COLssStore(uint32_t baudrate, uint8_t nodeId)
     RamStorage_NodeId   = nodeId;
 
     if (TsCallbacks != 0) {
+        TsCallbacks->LssStore_ArgLss = lss;
         TsCallbacks->LssStore_ArgBaudrate = baudrate;
         TsCallbacks->LssStore_ArgNodeId   = nodeId;
         TsCallbacks->LssStore_Called++;
@@ -219,7 +213,7 @@ CO_ERR COLssStore(uint32_t baudrate, uint8_t nodeId)
     return (result);
 }
 
-CO_ERR COLssLoad(uint32_t *baudrate, uint8_t *nodeId)
+CO_ERR COLssLoad(CO_LSS *lss, uint32_t *baudrate, uint8_t *nodeId)
 {
     CO_ERR result = CO_ERR_NONE;
 
@@ -231,6 +225,7 @@ CO_ERR COLssLoad(uint32_t *baudrate, uint8_t *nodeId)
     }
 
     if (TsCallbacks != 0) {
+        TsCallbacks->LssLoad_ArgLss = lss;
         TsCallbacks->LssLoad_ArgBaudrate = baudrate;
         TsCallbacks->LssLoad_ArgNodeId   = nodeId;
         TsCallbacks->LssLoad_Called++;
@@ -239,7 +234,7 @@ CO_ERR COLssLoad(uint32_t *baudrate, uint8_t *nodeId)
     return (result);
 }
 
-int16_t COParaDefault(CO_PARA *pg)
+int16_t COParaDefault(CO_PARA *pg, CO_NODE *node)
 {
     int16_t result = CO_ERR_NONE;
 
@@ -271,7 +266,7 @@ void TS_AppCSdoCallback(CO_CSDO *csdo, uint16_t index, uint8_t sub, uint32_t cod
     }
 }
 
-void CORpdoWriteData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
+void CORpdoWriteData(CO_RPDO *rpdo, CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
 {
     if (TsCallbacks != 0) {
         TsCallbacks->CORpdoWriteData_ArgFrm = frm;
@@ -282,7 +277,7 @@ void CORpdoWriteData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
     }
 }
 
-void COTpdoReadData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
+void COTpdoReadData(CO_TPDO *tpdo, CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
 {
     if (TsCallbacks != 0) {
         TsCallbacks->COTpdoReadData_ArgFrm = frm;

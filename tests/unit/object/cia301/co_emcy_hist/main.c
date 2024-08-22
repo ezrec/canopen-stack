@@ -170,7 +170,7 @@ void test_write_sub_1(void)
 
     err = COObjWrValue(&Obj, &AppNode, &val, sizeof(val));
 
-    TEST_CHECK(err == CO_ERR_TYPE_WR);
+    TEST_CHECK(err == CO_ERR_OBJ_RANGE);
 }
 
 void test_write_bad_node(void)

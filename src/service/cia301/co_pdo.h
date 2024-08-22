@@ -520,7 +520,7 @@ void CORPdoWrite(CO_RPDO *pdo, CO_IF_FRM *frm);
 * \param frm
 *    Pointer to PDO message frame
 */
-extern void COPdoTransmit(CO_IF_FRM *frm);
+extern void COPdoTransmit(CO_TPDO *tpdo, CO_IF_FRM *frm);
 
 /*! \brief  PDO RECEIVE CALLBACK
 *
@@ -537,7 +537,7 @@ extern void COPdoTransmit(CO_IF_FRM *frm);
 * \retval   =0    CAN message frame is not consumed
 * \retval   >0    CAN message frame is consumed
 */
-extern int16_t COPdoReceive(CO_IF_FRM *frm);
+extern int16_t COPdoReceive(CO_RPDO *rpdo, CO_IF_FRM *frm);
 
 /*! \brief  PDO WRITE DATA CALLBACK
 *
@@ -557,7 +557,7 @@ extern int16_t COPdoReceive(CO_IF_FRM *frm);
 * \param obj
 *    Pointer to the target object entry
 */
-extern void CORpdoWriteData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj);
+extern void CORpdoWriteData(CO_RPDO *rpdo, CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj);
 
 /*! \brief  PDO READ DATA CALLBACK
 *
@@ -576,7 +576,7 @@ extern void CORpdoWriteData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *o
 * \param obj
 *    Pointer to the source object entry
 */
-extern void COTpdoReadData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj);
+extern void COTpdoReadData(CO_TPDO *tpdo, CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj);
 
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }

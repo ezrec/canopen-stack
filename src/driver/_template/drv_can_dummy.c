@@ -21,7 +21,7 @@
 /* TODO: rename the include file name to match the naming convention:
  *   co_can_<device>.h
  */
-#include "co_can_dummy.h"
+#include "drv_can_dummy.h"
 
 /******************************************************************************
 * PRIVATE DEFINES
@@ -33,12 +33,12 @@
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void    DrvCanInit   (void);
-static void    DrvCanEnable (uint32_t baudrate);
-static int16_t DrvCanSend   (CO_IF_FRM *frm);
-static int16_t DrvCanRead   (CO_IF_FRM *frm);
-static void    DrvCanReset  (void);
-static void    DrvCanClose  (void);
+static void    DrvCanInit   (CO_IF *cif);
+static void    DrvCanEnable (CO_IF *cif, uint32_t baudrate);
+static int16_t DrvCanSend   (CO_IF *cif, CO_IF_FRM *frm);
+static int16_t DrvCanRead   (CO_IF *cif, CO_IF_FRM *frm);
+static void    DrvCanReset  (CO_IF *cif);
+static void    DrvCanClose  (CO_IF *cif);
 
 /******************************************************************************
 * PUBLIC VARIABLE
@@ -60,19 +60,19 @@ const CO_IF_CAN_DRV DummyCanDriver = {
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void DrvCanInit(void)
+static void DrvCanInit(CO_IF *cif)
 {
     /* TODO: initialize the CAN controller (don't enable communication) */
 }
 
-static void DrvCanEnable(uint32_t baudrate)
+static void DrvCanEnable(CO_IF *cif, uint32_t baudrate)
 {
     (void)baudrate;
 
     /* TODO: set the given baudrate to the CAN controller */
 }
 
-static int16_t DrvCanSend(CO_IF_FRM *frm)
+static int16_t DrvCanSend(CO_IF *cif, CO_IF_FRM *frm)
 {
     (void)frm;
 
@@ -80,7 +80,7 @@ static int16_t DrvCanSend(CO_IF_FRM *frm)
     return (0u);
 }
 
-static int16_t DrvCanRead (CO_IF_FRM *frm)
+static int16_t DrvCanRead (CO_IF *cif, CO_IF_FRM *frm)
 {
     (void)frm;
 
@@ -88,12 +88,12 @@ static int16_t DrvCanRead (CO_IF_FRM *frm)
     return (0u);
 }
 
-static void DrvCanReset(void)
+static void DrvCanReset(CO_IF *cif)
 {
     /* TODO: reset CAN controller while keeping baudrate */
 }
 
-static void DrvCanClose(void)
+static void DrvCanClose(CO_IF *cif)
 {
     /* TODO: remove CAN controller from CAN network */
 }

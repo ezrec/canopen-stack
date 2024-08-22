@@ -20,6 +20,7 @@
 
 #include "app_env.h"
 #include <stdio.h>
+#include <string.h>
 
 /******************************************************************************
 * PRIVATE DEFINES
@@ -160,6 +161,7 @@ void TS_CreateEmcy(void)
 void TS_CreateSpec(CO_NODE *node, CO_NODE_SPEC *spec, uint32_t freq)
 {
     TS_TestNode    = node;                               /* link parent node */
+    memset(node, 0, sizeof(*node));
 
     spec->NodeId   = 1u;                         /* setup node specification */
     spec->Baudrate = 250000u;
@@ -178,6 +180,7 @@ void TS_CreateSpec(CO_NODE *node, CO_NODE_SPEC *spec, uint32_t freq)
         spec->TmrFreq = TS_TMR_FREQ;
     }
     spec->SdoBuf   = &SdoBuf[0][0];
+    spec->Hooks  = (struct CO_HOOKS_T){};
 
     SimCanSetIsr(TS_CanIsr);                /* connect to test can interface */
 }

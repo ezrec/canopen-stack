@@ -37,9 +37,11 @@ void CONodeInit(CO_NODE *node, CO_NODE_SPEC *spec)
     node->Baudrate = spec->Baudrate;
     node->NodeId   = spec->NodeId;
     node->Error    = CO_ERR_NONE;
+    node->Hooks    = spec->Hooks;
     node->Nmt.Tmr  = -1;
 #if USE_LSS
-    err = COLssLoad(&node->Baudrate, &node->NodeId);
+    node->Lss.Node = node;
+    err = COLssLoad(&node->Lss, &node->Baudrate, &node->NodeId);
     if (err != CO_ERR_NONE) {
         node->Error = CO_ERR_LSS_LOAD;
     }
@@ -114,9 +116,6 @@ void CONodeProcess(CO_NODE *node)
     CO_IF_FRM frm;
     CO_ERR    err;
     CO_SDO   *srv;
-#if USE_CSDO
-    CO_CSDO  *csdo;
-#endif
     CO_RPDO  *rpdo;
     int16_t   result;
     uint8_t   allowed;
@@ -148,6 +147,7 @@ void CONodeProcess(CO_NODE *node)
             allowed = 0;
 #if USE_CSDO
         } else {
+            CO_CSDO  *csdo;
             csdo = COCSdoCheck(node->CSdo, &frm);
             if (csdo != NULL) {
                 err = COCSdoResponse(csdo);
@@ -187,6 +187,6 @@ void CONodeProcess(CO_NODE *node)
     }
 
     if (allowed != (uint8_t)0) {
-        COIfCanReceive(&frm);
+        COIfCanReceive(&node->If, &frm);
     }
 }

@@ -31,7 +31,7 @@ extern "C" {
 * PUBLIC DEFINES
 ******************************************************************************/
 
-#define CO_LSS_MAX_SID           21       /*!< number of LSS services        */
+#define CO_LSS_MAX_SID           22       /*!< number of LSS services        */
 #define CO_LSS_MAX_BAUD          10       /*!< number of standard baudrates  */
 
 #define CO_LSS_RX_ID           2021       /*!< LSS request identifier        */
@@ -63,6 +63,12 @@ extern "C" {
 #define CO_LSS_REM_SERIAL_MIN    14
 #define CO_LSS_REM_SERIAL_MAX    15
 
+#define CO_LSS_POS_VENDOR_ID    0x00
+#define CO_LSS_POS_PRODUCT_CODE 0x01
+#define CO_LSS_POS_REVISION     0x02
+#define CO_LSS_POS_SERIAL       0x03
+#define CO_LSS_POS_NOT_PARTICIPATING 0xff
+
 /******************************************************************************
 * PUBLIC TYPES
 ******************************************************************************/
@@ -81,7 +87,7 @@ typedef struct CO_LSS_T {
     uint8_t           Mode;          /* mode of layer setting service slave  */
     uint8_t           Step;          /* LSS address selection step           */
     uint8_t           Flags;         /* event flags                          */
-
+    uint8_t           Pos;           /* LSS Fastscan position                */
 } CO_LSS;
 
 typedef int16_t(*CO_LSS_SERVICE)(CO_LSS *, CO_IF_FRM *);
@@ -139,6 +145,7 @@ int16_t COLssIdentifyRemoteSlave_RevMax(CO_LSS *lss, CO_IF_FRM *frm);
 int16_t COLssIdentifyRemoteSlave_SerMin(CO_LSS *lss, CO_IF_FRM *frm);
 int16_t COLssIdentifyRemoteSlave_SerMax(CO_LSS *lss, CO_IF_FRM *frm);
 int16_t COLssNonConfiguredRemoteSlave(CO_LSS *lss, CO_IF_FRM *frm);
+int16_t COLssFastscan(CO_LSS *lss, CO_IF_FRM *frm);
 
 /******************************************************************************
 * CALLBACK FUNCTIONS
@@ -163,7 +170,7 @@ int16_t COLssNonConfiguredRemoteSlave(CO_LSS *lss, CO_IF_FRM *frm);
 * \retval  =CO_ERR_NONE   configuration stored
 * \retval !=CO_ERR_NONE   error is detected
 */
-extern CO_ERR COLssStore(uint32_t baudrate, uint8_t nodeId);
+extern CO_ERR COLssStore(CO_LSS *lss, uint32_t baudrate, uint8_t nodeId);
 
 /*! \brief LSS CONFIGURATION LOAD CALLBACK
 *
@@ -184,7 +191,7 @@ extern CO_ERR COLssStore(uint32_t baudrate, uint8_t nodeId);
 * \retval  =CO_ERR_NONE   configuration stored
 * \retval !=CO_ERR_NONE   error is detected
 */
-extern CO_ERR COLssLoad(uint32_t *baudrate, uint8_t *nodeId);
+extern CO_ERR COLssLoad(CO_LSS *lss, uint32_t *baudrate, uint8_t *nodeId);
 
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }

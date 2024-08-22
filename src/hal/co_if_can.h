@@ -88,7 +88,7 @@ extern "C" {
 *    The data position (0..7)
 */
 #define CO_GET_BYTE(f,p)     \
-    (uint8_t)( (uint8_t)(f)->Data[(p)&0x7] )
+    (uint8_t)( (uint8_t)(f)->Data[(p)&0x3f] )
 
 /*! \brief SET DATA BYTE
 *
@@ -104,7 +104,7 @@ extern "C" {
 *    The data position (0..7)
 */
 #define CO_SET_BYTE(f,n,p)   do {      \
-        (f)->Data[(p)&0x7] = (uint8_t)(n); \
+        (f)->Data[(p)&0x3f] = (uint8_t)(n); \
     } while(0)
 
 /*! \brief GET DATA WORD
@@ -118,8 +118,8 @@ extern "C" {
 *    The data position (0..6)
 */
 #define CO_GET_WORD(f,p)     \
-    (uint16_t)( ( ( (uint16_t)((f)->Data[((p)+1)&0x7]) ) << 8 ) | \
-                ( ( (uint16_t)((f)->Data[((p)  )&0x7]) )      )   )
+    (uint16_t)( ( ( (uint16_t)((f)->Data[((p)+1)&0x3f]) ) << 8 ) | \
+                ( ( (uint16_t)((f)->Data[((p)  )&0x3f]) )      )   )
 
 /*! \brief SET DATA WORD
 *
@@ -135,8 +135,8 @@ extern "C" {
 *    The data position (0..6)
 */
 #define CO_SET_WORD(f,n,p)  do {                                  \
-        (f)->Data[((p)  )&0x7] = (uint8_t)( ((uint16_t)(n) )     ); \
-        (f)->Data[((p)+1)&0x7] = (uint8_t)( ((uint16_t)(n) ) >> 8); \
+        (f)->Data[((p)  )&0x3f] = (uint8_t)( ((uint16_t)(n) )     ); \
+        (f)->Data[((p)+1)&0x3f] = (uint8_t)( ((uint16_t)(n) ) >> 8); \
     } while(0)
 
 /*! \brief GET DATA LONG
@@ -150,10 +150,10 @@ extern "C" {
 *    The data position (0..4)
 */
 #define CO_GET_LONG(f,p)     \
-    (uint32_t)( ( ( (uint32_t)((f)->Data[((p)+3)&0x7]) ) << 24 ) | \
-                ( ( (uint32_t)((f)->Data[((p)+2)&0x7]) ) << 16 ) | \
-                ( ( (uint32_t)((f)->Data[((p)+1)&0x7]) ) <<  8 ) | \
-                ( ( (uint32_t)((f)->Data[((p)  )&0x7]) )       )   )
+    (uint32_t)( ( ( (uint32_t)((f)->Data[((p)+3)&0x3f]) ) << 24 ) | \
+                ( ( (uint32_t)((f)->Data[((p)+2)&0x3f]) ) << 16 ) | \
+                ( ( (uint32_t)((f)->Data[((p)+1)&0x3f]) ) <<  8 ) | \
+                ( ( (uint32_t)((f)->Data[((p)  )&0x3f]) )       )   )
 
 /*! \brief SET DATA LONG
 *
@@ -169,10 +169,10 @@ extern "C" {
 *    The data position (0..4)
 */
 #define CO_SET_LONG(f,n,p)   do { \
-        (f)->Data[((p)  )&0x7] = (uint8_t)(((uint32_t)(n))      ); \
-        (f)->Data[((p)+1)&0x7] = (uint8_t)(((uint32_t)(n)) >>  8); \
-        (f)->Data[((p)+2)&0x7] = (uint8_t)(((uint32_t)(n)) >> 16); \
-        (f)->Data[((p)+3)&0x7] = (uint8_t)(((uint32_t)(n)) >> 24); \
+        (f)->Data[((p)  )&0x3f] = (uint8_t)(((uint32_t)(n))      ); \
+        (f)->Data[((p)+1)&0x3f] = (uint8_t)(((uint32_t)(n)) >>  8); \
+        (f)->Data[((p)+2)&0x3f] = (uint8_t)(((uint32_t)(n)) >> 16); \
+        (f)->Data[((p)+3)&0x3f] = (uint8_t)(((uint32_t)(n)) >> 24); \
     } while(0)
 
 /******************************************************************************
@@ -184,16 +184,16 @@ struct CO_NODE_T;              /* Declaration of canopen node structure      */
 
 typedef struct CO_IF_FRM_T {         /*!< Type, which represents a CAN frame */
     uint32_t  Identifier;            /*!< CAN message identifier             */
-    uint8_t   Data[8];               /*!< CAN message Data (payload)         */
+    uint8_t   Data[64];               /*!< CAN message Data (payload)         */
     uint8_t   DLC;                   /*!< CAN message data length code (DLC) */
 } CO_IF_FRM;
 
-typedef void    (*CO_IF_CAN_INIT_FUNC  )(void);
-typedef void    (*CO_IF_CAN_ENABLE_FUNC)(uint32_t);
-typedef int16_t (*CO_IF_CAN_READ_FUNC  )(CO_IF_FRM *);
-typedef int16_t (*CO_IF_CAN_SEND_FUNC  )(CO_IF_FRM *);
-typedef void    (*CO_IF_CAN_RESET_FUNC )(void);
-typedef void    (*CO_IF_CAN_CLOSE_FUNC )(void);
+typedef void    (*CO_IF_CAN_INIT_FUNC  )(struct CO_IF_T *);
+typedef void    (*CO_IF_CAN_ENABLE_FUNC)(struct CO_IF_T *, uint32_t);
+typedef int16_t (*CO_IF_CAN_READ_FUNC  )(struct CO_IF_T *, CO_IF_FRM *);
+typedef int16_t (*CO_IF_CAN_SEND_FUNC  )(struct CO_IF_T *, CO_IF_FRM *);
+typedef void    (*CO_IF_CAN_RESET_FUNC )(struct CO_IF_T *);
+typedef void    (*CO_IF_CAN_CLOSE_FUNC )(struct CO_IF_T *);
 
 typedef struct CO_IF_CAN_DRV_T {
     CO_IF_CAN_INIT_FUNC   Init;
@@ -304,10 +304,13 @@ void COIfCanEnable(struct CO_IF_T *cif, uint32_t baudrate);
 *    The CAN frame pointer is checked to be valid before calling this
 *    function.
 *
+* \param cif
+*    pointer to the interface structure
+*
 * \param frm
 *    The received CAN frame
 */
-extern void COIfCanReceive(CO_IF_FRM *frm);
+extern void COIfCanReceive(struct CO_IF_T *cif, CO_IF_FRM *frm);
 
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }

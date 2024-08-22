@@ -151,7 +151,7 @@ void test_write_start(void)
     uint16_t data = 0;
     uint16_t val  = 0x6655;
     CO_ERR   err;
-    CO_OBJ   Obj[1] = { CO_KEY(0x1800, 5, CO_OBJ_____RW), CO_TPDO_EVENT, (CO_DATA)(&data)};
+    CO_OBJ   Obj[1] = { { CO_KEY(0x1800, 5, CO_OBJ_____RW), CO_TPDO_EVENT, (CO_DATA)(&data)} };
     CODictInit(&AppNode.Dict, &AppNode, &Obj[0], 1);
     AppNode.Nmt.Mode = CO_OPERATIONAL;
     AppNode.TPdo[0].EvTmr = -1;
@@ -171,7 +171,7 @@ void test_write_change(void)
     uint16_t data = 0x8877;
     uint16_t val  = 0x6655;
     CO_ERR   err;
-    CO_OBJ   Obj[1] = { CO_KEY(0x1800, 5, CO_OBJ_____RW), CO_TPDO_EVENT, (CO_DATA)(&data)};
+    CO_OBJ   Obj[1] = { { CO_KEY(0x1800, 5, CO_OBJ_____RW), CO_TPDO_EVENT, (CO_DATA)(&data)} };
     CODictInit(&AppNode.Dict, &AppNode, &Obj[0], 1);
     AppNode.Nmt.Mode = CO_OPERATIONAL;
     AppNode.TPdo[0].EvTmr = 1;
@@ -191,7 +191,7 @@ void test_write_stop(void)
     uint16_t data = 0x8877;
     uint16_t val  = 0;
     CO_ERR   err;
-    CO_OBJ   Obj[1] = { CO_KEY(0x1800, 5, CO_OBJ_____RW), CO_TPDO_EVENT, (CO_DATA)(&data)};
+    CO_OBJ   Obj[1] = { { CO_KEY(0x1800, 5, CO_OBJ_____RW), CO_TPDO_EVENT, (CO_DATA)(&data)} };
     CODictInit(&AppNode.Dict, &AppNode, &Obj[0], 1);
     AppNode.Nmt.Mode = CO_OPERATIONAL;
     AppNode.TPdo[0].EvTmr = 1;

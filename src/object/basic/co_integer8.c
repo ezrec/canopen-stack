@@ -32,7 +32,7 @@
 
 static uint32_t COTInt8Size (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTInt8Read (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTInt8Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTInt8Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 
 /******************************************************************************
 * PUBLIC GLOBALS
@@ -87,7 +87,7 @@ static CO_ERR COTInt8Read(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *bu
     return (result);
 }
 
-static CO_ERR COTInt8Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTInt8Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     CO_ERR  result = CO_ERR_NONE;
     uint8_t value;

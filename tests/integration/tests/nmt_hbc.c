@@ -252,7 +252,11 @@ TS_DEF_MAIN(TS_HBCons_Jitter)
 *          This testcase will focus on the situation:
 *            HBP : O---O---O-- (O: heartbeat)
 *            HBC : |....!...!. (!: heartbeat consumer check/event)
-*          Check that the consumer monitor timing is accepted from Node-ID 0 (Master Node)
+*          Check that the consumer monitor timing is accepted from Node-ID 1 (Master Node)
+*
+*  NOTE: As per CIA 301, "If the heartbeat time is 0 or the node-ID is 0 or greater than 127 the
+*        corresponding object entry shall be not used." Therefore Node-ID 0 cannot be a producer of
+*        heartbeats to be consumed by this service.
 */
 /*------------------------------------------------------------------------------------------------*/
 TS_DEF_MAIN(TS_HBCons_MasterId)
@@ -261,7 +265,7 @@ TS_DEF_MAIN(TS_HBCons_MasterId)
     CO_HBCONS data = { 0 };
     int16_t   events;
 
-    data.NodeId = 0;
+    data.NodeId = 1;
     data.Time   = 50;
                                                       /*------------------------------------------*/
     TS_CreateMandatoryDir();
@@ -269,15 +273,15 @@ TS_DEF_MAIN(TS_HBCons_MasterId)
     TS_ODAdd(CO_KEY(0x1016, 1, CO_OBJ_____R_), CO_THB_CONS, (CO_DATA)(&data));
     TS_CreateNode(&node,0);
                                                       /*------------------------------------------*/
-    TS_HB_SEND(0, 5);
+    TS_HB_SEND(1, 5);
     TS_Wait(&node, 40);
-    TS_HB_SEND(0, 5);
+    TS_HB_SEND(1, 5);
     TS_Wait(&node, 40);
-    TS_HB_SEND(0, 5);
+    TS_HB_SEND(1, 5);
     TS_Wait(&node, 40);
-    TS_HB_SEND(0, 5);
+    TS_HB_SEND(1, 5);
 
-    events = CONmtGetHbEvents(&node.Nmt, 0);
+    events = CONmtGetHbEvents(&node.Nmt, 1);
     TS_ASSERT(0 == events);
 
     CHK_NO_ERR(&node);                                /* check error free stack execution         */
@@ -490,7 +494,79 @@ TS_DEF_MAIN(TS_HBCons_DynSdoError)
 *          is enabled.
 */
 /*------------------------------------------------------------------------------------------------*/
-TS_DEF_MAIN(TS_HBCons_DynSdoDisable)
+TS_DEF_MAIN(TS_HBCons_DynSdoDisableByZero)
+{
+    CO_NODE   node;
+    CO_HBCONS data  = { 0 };
+    int16_t   events;
+
+    data.NodeId = 10;
+    data.Time   = 50;
+                                                      /*------------------------------------------*/
+    TS_CreateMandatoryDir();
+    TS_ODAdd(CO_KEY(0x1016, 0, CO_OBJ_D___R_), CO_THB_CONS, (CO_DATA)(1));
+    TS_ODAdd(CO_KEY(0x1016, 1, CO_OBJ_____RW), CO_THB_CONS, (CO_DATA)(&data));
+    TS_CreateNode(&node,0);
+                                                      /*------------------------------------------*/
+    TS_HB_SEND(10, 5);
+    TS_Wait(&node, 30);
+
+    TS_SDO_SEND (0x23, 0x1016, 1, 0x00000000);
+
+    CHK_SDO0_OK(0x1016, 1);
+
+    TS_Wait(&node, 30);
+
+    events = CONmtGetHbEvents(&node.Nmt, 10);
+    TS_ASSERT(-1 == events);
+
+    CHK_NO_ERR(&node);                                /* check error free stack execution         */
+}
+
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief TC15
+*
+*          Check that the consumer can be disabled via SDO transfer correctly, if a consumer
+*          is enabled.
+*/
+/*------------------------------------------------------------------------------------------------*/
+TS_DEF_MAIN(TS_HBCons_DynSdoDisableByZeroNodeId)
+{
+    CO_NODE   node;
+    CO_HBCONS data  = { 0 };
+    int16_t   events;
+
+    data.NodeId = 10;
+    data.Time   = 50;
+                                                      /*------------------------------------------*/
+    TS_CreateMandatoryDir();
+    TS_ODAdd(CO_KEY(0x1016, 0, CO_OBJ_D___R_), CO_THB_CONS, (CO_DATA)(1));
+    TS_ODAdd(CO_KEY(0x1016, 1, CO_OBJ_____RW), CO_THB_CONS, (CO_DATA)(&data));
+    TS_CreateNode(&node,0);
+                                                      /*------------------------------------------*/
+    TS_HB_SEND(10, 5);
+    TS_Wait(&node, 30);
+
+    TS_SDO_SEND (0x23, 0x1016, 1, 0x00000032);
+
+    CHK_SDO0_OK(0x1016, 1);
+
+    TS_Wait(&node, 30);
+
+    events = CONmtGetHbEvents(&node.Nmt, 10);
+    TS_ASSERT(-1 == events);
+
+    CHK_NO_ERR(&node);                                /* check error free stack execution         */
+}
+
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief TC15
+*
+*          Check that the consumer can be disabled via SDO transfer correctly, if a consumer
+*          is enabled.
+*/
+/*------------------------------------------------------------------------------------------------*/
+TS_DEF_MAIN(TS_HBCons_DynSdoDisableByZeroTime)
 {
     CO_NODE   node;
     CO_HBCONS data  = { 0 };
@@ -543,7 +619,9 @@ SUITE_NMT_HBC()
     TS_RUNNER(TS_HBCons_WrEntry);
     TS_RUNNER(TS_HBCons_DynEvent);
     TS_RUNNER(TS_HBCons_DynSdoError);
-    TS_RUNNER(TS_HBCons_DynSdoDisable);
+    TS_RUNNER(TS_HBCons_DynSdoDisableByZero);
+    TS_RUNNER(TS_HBCons_DynSdoDisableByZeroNodeId);
+    TS_RUNNER(TS_HBCons_DynSdoDisableByZeroTime);
 
 //    CanDiagnosticOff(0);
 

@@ -36,7 +36,7 @@
 /* type functions */
 static uint32_t COTPdoEventSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTPdoEventRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTPdoEventWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTPdoEventWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTPdoEventInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /******************************************************************************
@@ -61,7 +61,7 @@ static CO_ERR COTPdoEventRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void
     return uint16->Read(obj, node, buffer, size);
 }
 
-static CO_ERR COTPdoEventWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTPdoEventWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint16 = CO_TUNSIGNED16;
     CO_DICT  *cod;

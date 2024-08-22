@@ -36,7 +36,7 @@
 /* type functions */
 static uint32_t COTParaRestoreSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTParaRestoreRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTParaRestoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTParaRestoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTParaRestoreInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /******************************************************************************
@@ -85,7 +85,7 @@ static CO_ERR COTParaRestoreRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, v
     return (result);
 }
 
-static CO_ERR COTParaRestoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTParaRestoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint8 = CO_TUNSIGNED8;
     CO_ERR    result = CO_ERR_TYPE_WR;
@@ -171,7 +171,7 @@ CO_ERR COParaRestore(struct CO_PARA_T *pg, struct CO_NODE_T *node)
 
     /* call default callback function */
     if ((pg->Value & CO_PARA___E) != 0) {
-        err = COParaDefault(pg);
+        err = COParaDefault(pg, node);
         if (err != CO_ERR_NONE) {
             result = CO_ERR_PARA_RESTORE;
         }

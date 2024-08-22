@@ -21,7 +21,7 @@
 /* TODO: rename the include file name to match the naming convention:
  *   co_nvm_<device>.h
  */
-#include "co_nvm_dummy.h"
+#include "drv_nvm_dummy.h"
 
 /******************************************************************************
 * PRIVATE DEFINES
@@ -33,9 +33,9 @@
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void     DrvNvmInit  (void);
-static uint32_t DrvNvmRead  (uint32_t start, uint8_t *buffer, uint32_t size);
-static uint32_t DrvNvmWrite (uint32_t start, uint8_t *buffer, uint32_t size);
+static void     DrvNvmInit  (CO_IF *cif);
+static uint32_t DrvNvmRead  (CO_IF *cif, uint32_t start, uint8_t *buffer, uint32_t size);
+static uint32_t DrvNvmWrite (CO_IF *cif, uint32_t start, uint8_t *buffer, uint32_t size);
 
 
 /******************************************************************************
@@ -55,12 +55,12 @@ const CO_IF_NVM_DRV DummyNvmDriver = {
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void DrvNvmInit(void)
+static void DrvNvmInit(CO_IF *cif)
 {
     /* TODO: initialize the non-volatile memory */
 }
 
-static uint32_t DrvNvmRead(uint32_t start, uint8_t *buffer, uint32_t size)
+static uint32_t DrvNvmRead(CO_IF *cif, uint32_t start, uint8_t *buffer, uint32_t size)
 {
     (void)start;
     (void)buffer;
@@ -70,7 +70,7 @@ static uint32_t DrvNvmRead(uint32_t start, uint8_t *buffer, uint32_t size)
     return (0u);
 }
 
-static uint32_t DrvNvmWrite(uint32_t start, uint8_t *buffer, uint32_t size)
+static uint32_t DrvNvmWrite(CO_IF *cif, uint32_t start, uint8_t *buffer, uint32_t size)
 {
     (void)start;
     (void)buffer;

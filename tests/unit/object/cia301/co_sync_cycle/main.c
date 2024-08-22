@@ -208,7 +208,6 @@ void test_reset_unused(void)
 {
     CO_NODE  AppNode = { 0 };
     uint32_t data = 0x22334455;
-    uint32_t val  = 0;
     CO_ERR   err;
     CO_OBJ   Obj = { CO_KEY(0x1006, 0, CO_OBJ_____RW), CO_TSYNC_CYCLE, (CO_DATA)(&data)};
 

@@ -37,7 +37,7 @@ extern "C" {
 * \details The size in byte of physical memory area for all domain entries.
 */
 /*---------------------------------------------------------------------------*/
-#define MEM_BLOCK   1024
+#define MEM_BLOCK   4096
 
 /*---------------------------------------------------------------------------*/
 /*! \brief NUMBER OF DOMAINS

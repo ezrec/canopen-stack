@@ -32,7 +32,7 @@
 
 static uint32_t COTInt16Size (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTInt16Read (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTInt16Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTInt16Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 
 /******************************************************************************
 * PUBLIC GLOBALS
@@ -87,7 +87,7 @@ static CO_ERR COTInt16Read(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *b
     return (result);
 }
 
-static CO_ERR COTInt16Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTInt16Write(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     CO_ERR   result = CO_ERR_NONE;
     uint16_t value;

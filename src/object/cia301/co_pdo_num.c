@@ -36,7 +36,7 @@
 /* type functions */
 static uint32_t COTPdoNumSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTPdoNumRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTPdoNumWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTPdoNumWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTPdoNumInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /******************************************************************************
@@ -61,7 +61,7 @@ static CO_ERR COTPdoNumRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *
     return uint8->Read(obj, node, buffer, size);
 }
 
-static CO_ERR COTPdoNumWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTPdoNumWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint8 = CO_TUNSIGNED8;
     CO_ERR    result = CO_ERR_NONE;
@@ -102,12 +102,12 @@ static CO_ERR COTPdoNumWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void 
         }
         mapbytes += ((uint8_t)mapentry) >> 3u;
     }
-    if (mapbytes > 8) {
+    if (mapbytes > 64) {
         return (CO_ERR_OBJ_MAP_LEN);
     }
 
     /* finaly: store new number of PDO mappings */
-    result = uint8->Write(obj, node, &mapnum, sizeof(mapnum));
+    result = uint8->Write(obj, node, &mapnum, 1);
     return (result);
 }
 

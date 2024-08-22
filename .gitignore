@@ -3,6 +3,7 @@ build/*
 out/*
 Testing/*
 .vscode/*
+tags
 
 #allow
 !.vscode/settings.json

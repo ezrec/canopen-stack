@@ -37,7 +37,7 @@
 /* type functions */
 static uint32_t COTPdoTypeSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTPdoTypeRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTPdoTypeWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTPdoTypeWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTPdoTypeInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /******************************************************************************
@@ -62,7 +62,7 @@ static CO_ERR COTPdoTypeRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void 
     return uint8->Read(obj, node, buffer, size);
 }
 
-static CO_ERR COTPdoTypeWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTPdoTypeWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint8 = CO_TUNSIGNED8;
     CO_ERR    result = CO_ERR_NONE;
@@ -85,7 +85,7 @@ static CO_ERR COTPdoTypeWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void
 
     /* write new PDO type */
     type    = *(uint8_t*)buffer;
-    result = uint8->Write(obj, node, &type, sizeof(type));
+    result = uint8->Write(obj, node, &type, 1);
     return (result);
 }
 

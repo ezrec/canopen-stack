@@ -36,7 +36,7 @@
 /* type functions */
 static uint32_t COTNmtHbConsSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTNmtHbConsRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTNmtHbConsWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTNmtHbConsWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTNmtHbConsInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /* helper functions */
@@ -93,7 +93,7 @@ static CO_ERR COTNmtHbConsRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, voi
     return (result);
 }
 
-static CO_ERR COTNmtHbConsWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTNmtHbConsWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint8 = CO_TUNSIGNED8;
     CO_ERR      result = CO_ERR_TYPE_WR;
@@ -133,7 +133,7 @@ static CO_ERR COTNmtHbConsInit(struct CO_OBJ_T *obj, struct CO_NODE_T *node)
     if (CO_GET_IDX(obj->Key) == COT_OBJECT) {
         if (CO_GET_SUB(obj->Key) == 0) {
             /* loop through configured number of consumers */
-            (void)uint8->Read(obj, node, &num, sizeof(num));
+            (void)uint8->Read(obj, node, &num, 1);
             while (num > 0) {
                 /* check if consumer subindex exists */
                 obj = CODictFind(&node->Dict, CO_DEV(COT_OBJECT, num));
@@ -169,56 +169,82 @@ CO_ERR CONmtHbConsActivate(CO_HBCONS *hbc, uint16_t time, uint8_t nodeid)
     CO_NMT     *nmt;
     CO_HBCONS  *act;
     CO_HBCONS  *prev;
-    CO_HBCONS  *found = 0;
+    CO_HBCONS  *found;
+    int is_valid = (time != 0 && nodeid >= 1 && nodeid <= 0x7f);
 
-    nmt = &(hbc->Node->Nmt);
-    prev = 0;
-    act  = nmt->HbCons;
-    while (act != 0) {
-        if (act->NodeId == nodeid) {
-            found = act;
-            break;
-        }
-        prev = act;
-        act  = act->Next;
+    if (hbc->Node == NULL) {
+        // Not initialized.
+        return CO_ERR_CFG_1016;
     }
 
-    if (found != 0) {
-        if (time > 0) {
+    nmt = &(hbc->Node->Nmt);
+
+    if (is_valid) {
+        // See if a matching active node ID exists.
+        found = 0;
+        for (act = nmt->HbCons; act != 0; act = act->Next) {
+            if (act->NodeId == nodeid) {
+                found = act;
+                break;
+            }
+        }
+
+        // If so, fail.
+        if (found != 0) {
             result = CO_ERR_OBJ_INCOMPATIBLE;
-        } else {
+        }
+    }
+
+    // No errors from the prior check?
+    if (result == CO_ERR_NONE) {
+        // Unilaterally remove ourselves from the NMT HBC monitor.
+        prev = 0;
+        found = 0;
+        for (act = nmt->HbCons; act != 0; act = act->Next) {
+            if (act == hbc) {
+                found = act;
+                break;
+            }
+            prev = act;
+        }
+
+        // Remove ourselves from the NMT monitor list.
+        if (found != 0) {
+            if (prev != 0) {
+                prev->Next = hbc->Next;
+            } else {
+                nmt->HbCons = hbc->Next;
+            }
+            hbc->Next = 0;
+
+            // Delete the timer if we were on the list.
             if (hbc->Tmr >= 0) {
                 err = COTmrDelete(&nmt->Node->Tmr, hbc->Tmr);
                 if (err < 0) {
                     result = CO_ERR_TMR_DELETE;
                 }
             }
-            hbc->Time   = time;
-            hbc->NodeId = nodeid;
-            hbc->Tmr    = -1;
-            hbc->Event  = 0;
-            hbc->State  = CO_INVALID;
-            hbc->Node   = nmt->Node;
-            if (prev == 0) {
-                nmt->HbCons = hbc->Next;
-            } else {
-                prev->Next  = hbc->Next;
-            }
-            hbc->Next   = 0;
         }
-    } else {
+
+        bool was_valid = (hbc->Time > 0 && hbc->NodeId >= 1 && hbc->NodeId <= 0x7f);
+        uint8_t old_nodeid = hbc->NodeId;
+
+        hbc->Event  = 0;
         hbc->Time   = time;
         hbc->NodeId = nodeid;
         hbc->Tmr    = -1;
-        hbc->Event  = 0;
         hbc->State  = CO_INVALID;
         hbc->Node   = nmt->Node;
 
-        if (time > 0) {
-            hbc->Next   = nmt->HbCons;
+        // Add ourselves to the start of the list if we have become valid.
+        if (is_valid) {
+            hbc->Next = nmt->HbCons;
             nmt->HbCons = hbc;
-        } else {
-            hbc->Next   = 0;
+        }
+
+        // If the old entry was valid, notify that the node is no longer monitored.
+        if (was_valid) {
+            CONmtHbConsChange(nmt, old_nodeid, CO_INVALID);
         }
     }
 
@@ -251,6 +277,7 @@ static void CONmtHbConsMonitor(void *parg)
     if (hbc->Event < 0xFFu) {
         hbc->Event++;
     }
+    hbc->State = CO_INVALID;
     CONmtHbConsEvent(&node->Nmt, hbc->NodeId);
 }
 
@@ -294,9 +321,9 @@ int16_t CONmtHbConsCheck(CO_NMT *nmt, CO_IF_FRM *frm)
             }
             state = CONmtModeDecode(frm->Data[0]);
             if (hbc->State != state) {
+                hbc->State = state;
                 CONmtHbConsChange(nmt, hbc->NodeId, state);
             }
-            hbc->State = state;
             result     = (int16_t)hbc->NodeId;
             break;
         }
@@ -315,7 +342,7 @@ int16_t CONmtGetHbEvents(CO_NMT *nmt, uint8_t nodeId)
     CO_HBCONS *hbc;
 
     if (nmt == 0) {
-        CONodeFatalError();
+        CONodeFatalError(nmt->Node);
         return (result);
     }
 
@@ -337,7 +364,7 @@ CO_MODE CONmtLastHbState(CO_NMT *nmt, uint8_t nodeId)
     CO_HBCONS  *hbc;
 
     if (nmt == 0) {
-        CONodeFatalError();
+        CONodeFatalError(nmt->Node);
         return (result);
     }
 

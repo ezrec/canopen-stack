@@ -22,13 +22,6 @@
 #include "co_core.h"
 
 /******************************************************************************
-* EXTERNAL FUNCTIONS
-******************************************************************************/
-
-extern void COTmrLock(void);
-extern void COTmrUnlock(void);
-
-/******************************************************************************
 * PRIVATE FUNCTION PROTOTYPES
 ******************************************************************************/
 
@@ -42,15 +35,15 @@ static void         COTmrRemove (CO_TMR *tmr, CO_TMR_TIME *tx);
 
 void COTmrInit(CO_TMR *tmr, CO_NODE *node, CO_TMR_MEM *mem, uint16_t num, uint32_t freq)
 {
-    COTmrLock();
     tmr->Node  = node;
     tmr->Max   = num;
     tmr->TPool = &mem->Tmr;
     tmr->APool = &mem->Act;
     tmr->Freq  = freq;
 
+    COTmrLock(tmr);
     COTmrReset(tmr);
-    COTmrUnlock();
+    COTmrUnlock(tmr);
 }
 
 void COTmrClear(CO_TMR *tmr)
@@ -132,7 +125,7 @@ int16_t COTmrCreate(CO_TMR      *tmr,
     int16_t        result;
 
     if (tmr == 0) {
-        CONodeFatalError();
+        CONodeFatalError(tmr->Node);
         return -1;
     }
     if (startTicks == 0) {
@@ -143,7 +136,7 @@ int16_t COTmrCreate(CO_TMR      *tmr,
         return -1;
     }
     if (tmr->Node == 0) {
-        CONodeFatalError();
+        CONodeFatalError(tmr->Node);
         return -1;
     }
     if (func == 0) {
@@ -151,10 +144,10 @@ int16_t COTmrCreate(CO_TMR      *tmr,
         return -1;
     }
 
-    COTmrLock();
+    COTmrLock(tmr);
     if (tmr->Acts == 0) {
         tmr->Node->Error = CO_ERR_TMR_NO_ACT;
-        COTmrUnlock();
+        COTmrUnlock(tmr);
         return -1;
     }
 
@@ -178,7 +171,7 @@ int16_t COTmrCreate(CO_TMR      *tmr,
         result = (int16_t)(act->Id);
     }
 
-    COTmrUnlock();
+    COTmrUnlock(tmr);
 
     return (result);
 }
@@ -197,7 +190,7 @@ int16_t COTmrDelete(CO_TMR *tmr, int16_t actId)
         return -1;
     }
 
-    COTmrLock();
+    COTmrLock(tmr);
 
     /* search in used timer list */
     tx = tmr->Use;                     
@@ -271,7 +264,7 @@ int16_t COTmrDelete(CO_TMR *tmr, int16_t actId)
             result = 0;
         }
     }
-    COTmrUnlock();
+    COTmrUnlock(tmr);
 
     return (result);
 }
@@ -328,7 +321,7 @@ void COTmrProcess(CO_TMR *tmr)
     void          *para;
 
     while (tmr->Elapsed != 0) {
-        COTmrLock();
+        COTmrLock(tmr);
         tn            = tmr->Elapsed;
         tmr->Elapsed  = tn->Next;
 
@@ -338,7 +331,7 @@ void COTmrProcess(CO_TMR *tmr)
         tn->Delta     = 0;
         tn->Next      = tmr->Free;
         tmr->Free     = tn;
-        COTmrUnlock();
+        COTmrUnlock(tmr);
 
         /* loop through all actions of elapsed timer event */
         while (act != 0) {
@@ -350,15 +343,15 @@ void COTmrProcess(CO_TMR *tmr)
             if (act->CycleTicks == 0) {
                 act->Para = 0;
                 act->Func = (CO_TMR_FUNC)0;
-                COTmrLock();
+                COTmrLock(tmr);
                 act->Next = tmr->Acts;
                 tmr->Acts = act;
-                COTmrUnlock();
+                COTmrUnlock(tmr);
 
             } else {
-                COTmrLock();
+                COTmrLock(tmr);
                 res = COTmrInsert(tmr, act->CycleTicks, act);
-                COTmrUnlock();
+                COTmrUnlock(tmr);
                 if (res == (CO_TMR_TIME*)0) {
                     tmr->Node->Error = CO_ERR_TMR_CREATE;
                 }
@@ -538,7 +531,7 @@ static void COTmrRemove(CO_TMR *tmr, CO_TMR_TIME *tx)
 
             /* loop through used timers in list until timer is removed */
             tn = tmr->Use;
-            do {
+            while ((tn != 0) && (tx != 0)) {
                 /* remove next timer in list */
                 if (tn->Next == tx) {
                     tn->Next = tx->Next;
@@ -553,7 +546,21 @@ static void COTmrRemove(CO_TMR *tmr, CO_TMR_TIME *tx)
                     tx         = 0;
                 }
                 tn = tn->Next;
-            } while((tn != 0) && (tx != 0));
+            }
         }
+    }
+}
+
+void COTmrLock(CO_TMR *tmr)
+{
+    if (tmr->Node->If.Drv->Timer->Lock) {
+        tmr->Node->If.Drv->Timer->Lock(&tmr->Node->If);
+    }
+}
+
+void COTmrUnlock(CO_TMR *tmr)
+{
+    if (tmr->Node->If.Drv->Timer->Unlock) {
+        tmr->Node->If.Drv->Timer->Unlock(&tmr->Node->If);
     }
 }

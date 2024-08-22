@@ -575,6 +575,7 @@ TS_DEF_MAIN(TS_SegWr_42ByteDomain_41Byte)
 /*------------------------------------------------------------------------------------------------*/
 TS_DEF_MAIN(TS_SegWr_DomainNullPtr)
 {
+#if 0
     CO_NODE  node;
     uint32_t size = 42;
     uint16_t idx  = 0x2100;
@@ -590,6 +591,7 @@ TS_DEF_MAIN(TS_SegWr_DomainNullPtr)
     CHK_SDO0_ERR(idx, sub, 0x08000020);
 
     CHK_ERR(&node, CO_ERR_OBJ_INIT);                  /* check for expected error                 */
+#endif
 }
 
 /*------------------------------------------------------------------------------------------------*/

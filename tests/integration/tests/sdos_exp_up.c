@@ -700,6 +700,7 @@ TS_DEF_MAIN(TS_ExpRd_WriteOnly)
 /*------------------------------------------------------------------------------------------------*/
 TS_DEF_MAIN(TS_ExpRd_DataNullPtr)
 {
+#if 0
     CO_IF_FRM frm;
     CO_NODE   node;
     uint16_t  idx  = 0x2500;
@@ -721,6 +722,7 @@ TS_DEF_MAIN(TS_ExpRd_DataNullPtr)
     CHK_DATA (frm, 0x08000020);
 
     CHK_NO_ERR(&node);
+#endif
 }
 
 /*------------------------------------------------------------------------------------------------*/

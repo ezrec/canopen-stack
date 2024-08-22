@@ -35,7 +35,7 @@
 /* type functions */
 static uint32_t COTEmcyIdSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTEmcyIdRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTEmcyIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTEmcyIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTEmcyIdInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /******************************************************************************
@@ -60,7 +60,7 @@ static CO_ERR COTEmcyIdRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *
     return uint32->Read(obj, node, buffer, size);
 }
 
-static CO_ERR COTEmcyIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTEmcyIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint32 = CO_TUNSIGNED32;
     CO_ERR    result = CO_ERR_NONE;
@@ -70,14 +70,14 @@ static CO_ERR COTEmcyIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void 
     ASSERT_EQU_ERR(size, COT_ENTRY_SIZE, CO_ERR_BAD_ARG);
 
     newId = *(uint32_t*)buffer;
-    (void)uint32->Read(obj, node, &oldId, sizeof(oldId));
+    (void)uint32->Read(obj, node, &oldId, 4);
 
     /* when current entry is active, bits 0 to 29 shall not be changed */
     if ((oldId & CO_EMCY_COBID_OFF) == (uint32_t)0) {
         if ((newId & CO_EMCY_COBID_MASK) != (oldId & CO_EMCY_COBID_MASK)) {
             result = CO_ERR_OBJ_RANGE;
         } else {
-            result = uint32->Write(obj, node, &newId, sizeof(newId));
+            result = uint32->Write(obj, node, &newId, 4);
         }
     } else {
         /* Conformance Test case : 2.11 - Test name : SDO 11
@@ -87,7 +87,7 @@ static CO_ERR COTEmcyIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void 
          * SDO 11: Valid abort codes are 06090030h, 06090032h or 08000000h
          */
         if (newId >= COT_COBID_MIN) {
-            result = uint32->Write(obj, node, &newId, sizeof(newId));
+            result = uint32->Write(obj, node, &newId, 4);
         } else {
             result = CO_ERR_OBJ_RANGE;
         }

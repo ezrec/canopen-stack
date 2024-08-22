@@ -21,7 +21,7 @@
 /* TODO: rename the include file name to match the naming convention:
  *   co_timer_<device>.h
  */
-#include "co_timer_dummy.h"
+#include "drv_timer_dummy.h"
 
 /******************************************************************************
 * PRIVATE DEFINES
@@ -33,12 +33,12 @@
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void     DrvTimerInit   (uint32_t freq);
-static void     DrvTimerStart  (void);
-static uint8_t  DrvTimerUpdate (void);
-static uint32_t DrvTimerDelay  (void);
-static void     DrvTimerReload (uint32_t reload);
-static void     DrvTimerStop   (void);
+static void     DrvTimerInit   (struct CO_IF_T *, uint32_t freq);
+static void     DrvTimerStart  (struct CO_IF_T *);
+static uint8_t  DrvTimerUpdate (struct CO_IF_T *);
+static uint32_t DrvTimerDelay  (struct CO_IF_T *);
+static void     DrvTimerReload (struct CO_IF_T *, uint32_t reload);
+static void     DrvTimerStop   (struct CO_IF_T *);
 
 /******************************************************************************
 * PUBLIC VARIABLE
@@ -60,38 +60,38 @@ const CO_IF_TIMER_DRV DummyTimerDriver = {
 * PRIVATE FUNCTIONS
 ******************************************************************************/
 
-static void DrvTimerInit(uint32_t freq)
+static void DrvTimerInit(CO_IF *cif, uint32_t freq)
 {
     (void)freq;
 
     /* TODO: initialize timer, clear counter and keep timer stopped */
 }
 
-static void DrvTimerStart(void)
+static void DrvTimerStart(CO_IF *cif)
 {
     /* TODO: start hardware timer */
 }
 
-static uint8_t DrvTimerUpdate(void)
+static uint8_t DrvTimerUpdate(CO_IF *cif)
 {
     /* TODO: return 1 if timer event is elapsed, otherwise 0 */
     return (0u);
 }
 
-static uint32_t DrvTimerDelay(void)
+static uint32_t DrvTimerDelay(CO_IF *cif)
 {
     /* TODO: return current timer counter value */
     return (0u);
 }
 
-static void DrvTimerReload(uint32_t reload)
+static void DrvTimerReload(CO_IF *cif, uint32_t reload)
 {
     (void)reload;
 
     /* TODO: reload timer counter value with given reload value */
 }
 
-static void DrvTimerStop(void)
+static void DrvTimerStop(CO_IF *cif)
 {
     /* TODO: stop timer and clear counter value */
 }

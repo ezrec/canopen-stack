@@ -89,15 +89,15 @@ typedef unsigned int        uintptr_t;
 *        adjust the settings here and provide an output channel in ts_output.c to get
 *        the tests running on your target, too.
 */
-#define TEST_SECTION_PRE          __attribute__((section(".test")))
+#define TEST_SECTION_PRE          __attribute__((__section__("test")))
 #define TEST_SECTION_DEF
 #define TEST_SECTION_SUF
 #define TEST_SECTION_START        __start_test
 #define TEST_SECTION_END          __stop_test
 #define TEST_SECTION_START_DEF
-#define TEST_SECTION_START_ALLOC  static const TS_INFOFUNC TEST_SECTION_START = (TS_INFOFUNC)0;
+#define TEST_SECTION_START_ALLOC  extern const TS_INFOFUNC TEST_SECTION_START;
 #define TEST_SECTION_END_DEF
-#define TEST_SECTION_END_ALLOC    static const TS_INFOFUNC TEST_SECTION_END = (TS_INFOFUNC)0;
+#define TEST_SECTION_END_ALLOC    extern const  TS_INFOFUNC TEST_SECTION_END;
 #define STRUCT_PACKED_PRE
 #define STRUCT_PACKED_SUF         __attribute__((packed))
 #endif

@@ -257,6 +257,28 @@ void COTmrInit(CO_TMR           *tmr,
 */
 void COTmrClear(CO_TMR *tmr);
 
+/*! \brief LOCK TIMER
+*
+*   This function helps to guarantee the consistancy
+*   of the internal timer management while interrupted
+*   by the used timer interrupt.
+*
+* \param tmr
+*    Pointer to timer structure
+*/
+void COTmrLock(CO_TMR *tmr);
+
+/*! \brief UNLOCK TIMER
+*
+*   This function helps to guarantee the consistancy
+*   of the internal timer management while interrupted
+*   by the used timer interrupt.
+*
+* \param tmr
+*    Pointer to timer structure
+*/
+void COTmrUnlock(CO_TMR *tmr);
+
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }
 #endif

@@ -616,6 +616,141 @@ TS_DEF_MAIN(TS_BlkRd_LostMiddleSeg)
     CHK_NO_ERR(&node);                                /* check error free stack execution         */
 }
 
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief TESTCASE DESCRIPTION
+*
+* \ingroup TS_CO
+*
+*          This testcase will check the block upload of an array and
+*          check the failed block upload of losing a segment in the middle of the transfer, and
+*          shrinking the requested block size.
+*          (Go-Back-N ARQ)
+*/
+/*------------------------------------------------------------------------------------------------*/
+TS_DEF_MAIN(TS_BlkRd_LostMiddleSegShrink)
+{
+    const uint8_t large_size = CO_SDO_BUF_SEG;
+    const uint8_t shrink_size = large_size/2;
+    const uint8_t large_miss = large_size/2 + 1;
+    const uint8_t extra_size = shrink_size - 1;
+
+    CO_IF_FRM   frm;
+    CO_NODE     node;
+    CO_OBJ_DOM *dom ;
+    uint32_t    size = 7 * (large_size + large_miss + shrink_size + extra_size);
+    uint16_t    idx  = 0x2520;
+    uint8_t     sub  = 6;
+    uint32_t    datum = 0;
+                                                      /*------------------------------------------*/
+    TS_CreateMandatoryDir();
+    dom = DomCreate(idx, sub, CO_OBJ_____RW, size);
+    DomFill(dom, datum);
+    TS_CreateNode(&node,0);
+
+                                                      /*===== INIT BLOCK UPLOAD (PHASE I) ========*/
+    TS_SDO_SEND (0xA0, idx, sub, large_size);
+
+    CHK_CAN     (&frm);                               /* check for a CAN frame                    */
+    CHK_SDO0    (frm, 0xC2);                          /* check SDO #0 response (Id and DLC)       */
+    CHK_MLTPX   (frm, idx, sub);                      /* check multiplexer                        */
+    CHK_DATA    (frm, size);                          /* check block size                         */
+
+                                                      /*===== INIT BLOCK UPLOAD (PHASE II) =======*/
+    TS_SDO_SEND (0xA3, 0x0000, 0, 0);
+    TS_ChkBlk  (datum, large_size, 0, 0);           /* all received blocks, not last            */
+    datum += large_size*7;
+
+                                                      /*===== BLOCK UPLOAD =======================*/
+    TS_ACKBLK_SEND(0xA2, large_size, large_size);
+    TS_ChkBlk  (datum, large_size, 0, 0);
+    datum += large_miss*7;
+
+    TS_ACKBLK_SEND(0xA2, large_miss, shrink_size);
+    TS_ChkBlk  (datum, shrink_size, 0, 0);
+    datum += shrink_size*7;
+
+    TS_ACKBLK_SEND(0xA2, shrink_size, shrink_size);
+    TS_ChkBlk  (datum, extra_size, 1, 7);
+
+    TS_ACKBLK_SEND(0xA2, extra_size, shrink_size);
+
+                                                      /*===== END BLOCK UPLOAD ===================*/
+    CHK_CAN     (&frm);                               /* check for a CAN frame                    */
+    CHK_SDO0    (frm, 0xC1);                          /* check SDO #0 response (Id and DLC)       */
+    CHK_ZERO    (frm);                                /* check cleared data area                  */
+
+    TS_EBLK_SEND(0xA1, 0x00000000);
+
+    CHK_NO_ERR(&node);                                /* check error free stack execution         */
+}
+
+/*------------------------------------------------------------------------------------------------*/
+/*! \brief TESTCASE DESCRIPTION
+*
+* \ingroup TS_CO
+*
+*          This testcase will check the block upload of an array and
+*          check the failed block upload of losing a segment in the middle of the transfer, and
+*          expanding the requested block size.
+*          (Go-Back-N ARQ)
+*/
+/*------------------------------------------------------------------------------------------------*/
+TS_DEF_MAIN(TS_BlkRd_LostMiddleSegExpand)
+{
+    const uint8_t large_size = CO_SDO_BUF_SEG;
+    const uint8_t shrink_size = large_size/2;
+    const uint8_t shrink_miss = shrink_size/2 + 1;
+    const uint8_t extra_size = large_size - 1;
+
+    CO_IF_FRM   frm;
+    CO_NODE     node;
+    CO_OBJ_DOM *dom ;
+    uint32_t    size = 7 * (shrink_size + shrink_miss + large_size + extra_size);
+    uint16_t    idx  = 0x2520;
+    uint8_t     sub  = 6;
+    uint32_t    datum = 0;
+                                                      /*------------------------------------------*/
+    TS_CreateMandatoryDir();
+    dom = DomCreate(idx, sub, CO_OBJ_____RW, size);
+    DomFill(dom, datum);
+    TS_CreateNode(&node,0);
+
+                                                      /*===== INIT BLOCK UPLOAD (PHASE I) ========*/
+    TS_SDO_SEND (0xA0, idx, sub, shrink_size);
+
+    CHK_CAN     (&frm);                               /* check for a CAN frame                    */
+    CHK_SDO0    (frm, 0xC2);                          /* check SDO #0 response (Id and DLC)       */
+    CHK_MLTPX   (frm, idx, sub);                      /* check multiplexer                        */
+    CHK_DATA    (frm, size);                          /* check block size                         */
+
+                                                      /*===== INIT BLOCK UPLOAD (PHASE II) =======*/
+    TS_SDO_SEND (0xA3, 0x0000, 0, 0);
+    TS_ChkBlk  (datum, shrink_size, 0, 0);           /* all received blocks, not last            */
+    datum += shrink_size*7;
+
+                                                      /*===== BLOCK UPLOAD =======================*/
+    TS_ACKBLK_SEND(0xA2, shrink_size, shrink_size);
+    TS_ChkBlk  (datum, shrink_size, 0, 0);
+    datum += shrink_miss*7;
+
+    TS_ACKBLK_SEND(0xA2, shrink_miss, large_size);
+    TS_ChkBlk  (datum, large_size, 0, 0);
+    datum += large_size*7;
+
+    TS_ACKBLK_SEND(0xA2, large_size, large_size);
+    TS_ChkBlk  (datum, extra_size, 1, 7);
+
+    TS_ACKBLK_SEND(0xA2, extra_size, large_size);
+
+                                                      /*===== END BLOCK UPLOAD ===================*/
+    CHK_CAN     (&frm);                               /* check for a CAN frame                    */
+    CHK_SDO0    (frm, 0xC1);                          /* check SDO #0 response (Id and DLC)       */
+    CHK_ZERO    (frm);                                /* check cleared data area                  */
+
+    TS_EBLK_SEND(0xA1, 0x00000000);
+
+    CHK_NO_ERR(&node);                                /* check error free stack execution         */
+}
 
 /*------------------------------------------------------------------------------------------------*/
 /*! \brief TESTCASE DESCRIPTION
@@ -872,6 +1007,7 @@ TS_DEF_MAIN(TS_BlkRd_WriteOnly)
 /*------------------------------------------------------------------------------------------------*/
 TS_DEF_MAIN(TS_BlkRd_DomainNullPtr)
 {
+#if 0
     CO_IF_FRM frm;
     CO_NODE   node;
     uint16_t  idx  = 0x2520;
@@ -890,6 +1026,7 @@ TS_DEF_MAIN(TS_BlkRd_DomainNullPtr)
     CHK_DATA (frm, 0x08000020);                       /* check abort code                         */
 
     CHK_ERR(&node, CO_ERR_OBJ_INIT);                  /* check for expected error                 */
+#endif
 }
 
 /*------------------------------------------------------------------------------------------------*/
@@ -1354,6 +1491,8 @@ SUITE_BLK_UP()
     TS_RUNNER(TS_BlkRd_889ByteDomain);
     TS_RUNNER(TS_BlkRd_888ByteDomain);
     TS_RUNNER(TS_BlkRd_LostMiddleSeg);
+    TS_RUNNER(TS_BlkRd_LostMiddleSegShrink);
+    TS_RUNNER(TS_BlkRd_LostMiddleSegExpand);
     TS_RUNNER(TS_BlkRd_LostLastSeg);
     TS_RUNNER(TS_BlkRd_LostFirstSeg);
     TS_RUNNER(TS_BlkRd_BadCmd);

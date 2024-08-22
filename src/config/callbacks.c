@@ -20,49 +20,18 @@
 
 #include "co_core.h"
 
-void COTmrLock  (void);
-void COTmrUnlock(void);
-
 /******************************************************************************
 * MANDATORY CALLBACK FUNCTIONS
 ******************************************************************************/
 
 WEAK
-void CONodeFatalError(void)
+void CONodeFatalError(CO_NODE *node)
 {
-    volatile uint8_t debugExit = 0u;
+    const CO_HOOKS *hooks = &node->Hooks;
 
-    /* Place here your fatal error handling.
-     * There is most likely a programming error.
-     * !! Please don't ignore this errors. !!
-     */
-    for (;debugExit == 0u;);
-}
-
-WEAK
-void COTmrLock(void)
-{
-    /* This function helps to guarantee the consistancy
-     * of the internal timer management while interrupted
-     * by the used timer interrupt. Most likely you need
-     * at this point on of the following mechanisms:
-     * - disable the used hardware timer interrupt
-     * - get a 'timer-mutex' from your RTOS (ensure to
-     *   call COTmrService() in a timer triggered task)
-     */
-}
-
-WEAK
-void COTmrUnlock(void)
-{
-    /* This function helps to guarantee the consistancy
-     * of the internal timer management while interrupted
-     * by the used timer interrupt. Most likely you need
-     * at this point on of the following mechanisms:
-     * - (re)enable the used hardware timer interrupt
-     * - release the 'timer-mutex' from your RTOS (ensure
-     *   to call COTmrService() in a timer triggered task)
-     */
+    if (hooks->NodeFatalError) {
+        hooks->NodeFatalError(node);
+    }
 }
 
 /******************************************************************************
@@ -72,159 +41,151 @@ void COTmrUnlock(void)
 WEAK
 void CONmtModeChange(CO_NMT *nmt, CO_MODE mode)
 {
-    (void)nmt;
-    (void)mode;
+    const CO_HOOKS *hooks = &nmt->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * when a NMT mode change is initiated.
-     */
+    if (hooks->NmtModeChange) {
+        hooks->NmtModeChange(nmt, mode);
+    }
 }
 
 WEAK
 void CONmtResetRequest(CO_NMT *nmt, CO_NMT_RESET reset)
 {
-    (void)nmt;
-    (void)reset;
+    const CO_HOOKS *hooks = &nmt->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * when a NMT reset is requested by the network.
-     */
+    if (hooks->NmtResetRequest) {
+        hooks->NmtResetRequest(nmt, reset);
+    }
 }
 
 WEAK
 void CONmtHbConsEvent(CO_NMT *nmt, uint8_t nodeId)
 {
-    (void)nmt;
-    (void)nodeId;
+    const CO_HOOKS *hooks = &nmt->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * called when heartbeat consumer is in use and
-     * detects an error on monitored node(s).
-     */
+    if (hooks->NmtHbConsEvent) {
+        hooks->NmtHbConsEvent(nmt, nodeId);
+    }
 }
 
 WEAK
 void CONmtHbConsChange(CO_NMT *nmt, uint8_t nodeId, CO_MODE mode)
 {
-    (void)nmt;
-    (void)nodeId;
-    (void)mode;
+    const CO_HOOKS *hooks = &nmt->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * when heartbeat consumer is in use and detects a
-     * NMT state change on monitored node(s).
-     */
+    if (hooks->NmtHbConsChange) {
+        hooks->NmtHbConsChange(nmt, nodeId, mode);
+    }
 }
 
 WEAK
-CO_ERR COLssLoad(uint32_t *baudrate, uint8_t *nodeId)
+CO_ERR COLssLoad(CO_LSS *lss, uint32_t *baudrate, uint8_t *nodeId)
 {
-    (void)baudrate;
-    (void)nodeId;
+    const CO_HOOKS *hooks = &lss->Node->Hooks;
+    CO_ERR ret = CO_ERR_NONE;
 
-    /* Optional: place here some code, which is called
-     * when LSS client is in use and the CANopen node
-     * is initialized.
-     */
-    return (CO_ERR_NONE);
+    if (hooks->LssLoad) {
+        ret = hooks->LssLoad(lss, baudrate, nodeId);
+    }
+
+    return ret;
 }
 
 WEAK
-CO_ERR COLssStore(uint32_t baudrate, uint8_t nodeId)
+CO_ERR COLssStore(CO_LSS *lss, uint32_t baudrate, uint8_t nodeId)
 {
-    (void)baudrate;
-    (void)nodeId;
+    const CO_HOOKS *hooks = &lss->Node->Hooks;
+    CO_ERR ret = CO_ERR_NONE;
 
-    /* Optional: place here some code, which is called
-     * when LSS client is in use and the CANopen node
-     * needs to store updated values.
-     */
-    return (CO_ERR_NONE);
+    if (hooks->LssStore) {
+        ret = hooks->LssStore(lss, baudrate, nodeId);
+    }
+
+    return ret;
 }
 
 WEAK
-void COIfCanReceive(CO_IF_FRM *frm)
+void COIfCanReceive(CO_IF *cif, CO_IF_FRM *frm)
 {
-    (void)frm;
+    const CO_HOOKS *hooks = &cif->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * when you need to handle CAN messages, which are
-     * not part of the CANopen protocol.
-     */
+    if (hooks->IfCanReceive) {
+        hooks->IfCanReceive(cif, frm);
+    }
 }
 
 WEAK
-void COPdoTransmit(CO_IF_FRM *frm)
+void COPdoTransmit(CO_TPDO *tpdo, CO_IF_FRM *frm)
 {
-    (void)frm;
+    const CO_HOOKS *hooks = &tpdo->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * just before a PDO is transmitted. You may adjust
-     * the given CAN frame which is send afterwards.
-     */
+    if (hooks->PdoTransmit) {
+        hooks->PdoTransmit(tpdo, frm);
+    }
 }
 
 WEAK
-int16_t COPdoReceive(CO_IF_FRM *frm)
+int16_t COPdoReceive(CO_RPDO *rpdo, CO_IF_FRM *frm)
 {
-    (void)frm;
+    const CO_HOOKS *hooks = &rpdo->Node->Hooks;
+    int16_t ret = CO_ERR_NONE;
 
-    /* Optional: place here some code, which is called
-     * right after receiving a PDO. You may adjust
-     * the given CAN frame which is written into the
-     * object dictionary afterwards or suppress the
-     * write operation.
-     */
-    return(0u);
+    if (hooks->PdoReceive) {
+        ret = hooks->PdoReceive(rpdo, frm);
+    }
+
+    return ret;
 }
 
 WEAK
-void COPdoSyncUpdate(CO_RPDO *pdo)
+void COPdoSyncUpdate(CO_RPDO *rpdo)
 {
-    (void)pdo;
+    const CO_HOOKS *hooks = &rpdo->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * right after the object dictionary update due to
-     * a synchronized PDO.
-     */
+    if (hooks->PdoSyncUpdate) {
+        hooks->PdoSyncUpdate(rpdo);
+    }
 }
 
 WEAK
-int16_t COParaDefault(struct CO_PARA_T *pg)
+int16_t COParaDefault(CO_PARA *pg, CO_NODE *node)
 {
-    (void)pg;
+    const CO_HOOKS *hooks = &node->Hooks;
+    int16_t ret = CO_ERR_NONE;
 
-    /* Optional: place here some code, which is called
-     * when a parameter group is restored to factory
-     * settings.
-     */
-    return (0u);
+    if (hooks->ParaDefault) {
+        ret = hooks->ParaDefault(pg, node);
+    }
+
+    return ret;
 }
 
 WEAK
-void CORpdoWriteData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
+void CORpdoWriteData(CO_RPDO *rpdo, CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
 {
-    (void)frm;
-    (void)pos;
-    (void)size;
-    (void)obj;
+    const CO_HOOKS *hooks = &rpdo->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * when a PDO is received with mapped values with
-     * a size larger than 4 byte.
-     */
+    if (hooks->RPdoWriteData) {
+        hooks->RPdoWriteData(rpdo, frm, pos, size, obj);
+    }
 }
 
 WEAK
-void COTpdoReadData(CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
+void COTpdoReadData(CO_TPDO *tpdo, CO_IF_FRM *frm, uint8_t pos, uint8_t size, CO_OBJ *obj)
 {
-    (void)frm;
-    (void)pos;
-    (void)size;
-    (void)obj;
+    const CO_HOOKS *hooks = &tpdo->Node->Hooks;
 
-    /* Optional: place here some code, which is called
-     * when a PDO is constructed for transmission which
-     * needs a mapped values with a size larger than 4 byte.
-     */
+    if (hooks->TPdoReadData) {
+        hooks->TPdoReadData(tpdo, frm, pos, size, obj);
+    }
+}
+
+WEAK
+void COObjUpdated(CO_OBJ *obj, CO_NODE *node)
+{
+    const CO_HOOKS *hooks = &node->Hooks;
+
+    if (hooks->ObjUpdated) {
+        hooks->ObjUpdated(obj, node);
+    }
 }

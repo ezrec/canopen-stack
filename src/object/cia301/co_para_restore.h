@@ -90,7 +90,7 @@ CO_ERR COParaRestore(CO_PARA *pg, struct CO_NODE_T *node);
 * \retval  =0    parameter loading successful
 * \retval  <0    error is detected and function aborted
 */
-extern int16_t COParaDefault(CO_PARA *pg);
+extern int16_t COParaDefault(CO_PARA *pg, struct CO_NODE_T *node);
 
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }

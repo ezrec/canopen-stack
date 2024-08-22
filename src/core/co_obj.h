@@ -268,7 +268,7 @@ typedef CO_ERR   (*CO_OBJ_INIT_FUNC) (struct CO_OBJ_T *obj, struct CO_NODE_T *no
 /*!< Read type function prototype */
 typedef CO_ERR   (*CO_OBJ_READ_FUNC) (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
 /*!< Write type function prototype */
-typedef CO_ERR   (*CO_OBJ_WRITE_FUNC)(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+typedef CO_ERR   (*CO_OBJ_WRITE_FUNC)(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 /*!< Reset type function prototype */
 typedef CO_ERR   (*CO_OBJ_RESET_FUNC)(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t para);
 
@@ -391,7 +391,7 @@ CO_ERR COObjRdBufCont(CO_OBJ *obj, struct CO_NODE_T *node, uint8_t *buffer, uint
 * \retval   =CO_ERR_NONE    Successfully operation
 * \retval  !=CO_ERR_NONE    An error is detected
 */
-CO_ERR COObjWrBufStart(CO_OBJ *obj, struct CO_NODE_T *node, uint8_t *buffer, uint32_t len);
+CO_ERR COObjWrBufStart(CO_OBJ *obj, struct CO_NODE_T *node, const uint8_t *buffer, uint32_t len);
 
 /*! \brief  CONTINUE WRITE BUFFER TO OBJECT ENTRY
 *
@@ -414,7 +414,7 @@ CO_ERR COObjWrBufStart(CO_OBJ *obj, struct CO_NODE_T *node, uint8_t *buffer, uin
 * \retval   =CO_ERR_NONE    Successfully operation
 * \retval  !=CO_ERR_NONE    An error is detected
 */
-CO_ERR COObjWrBufCont(CO_OBJ *obj, struct CO_NODE_T *node, uint8_t *buffer, uint32_t len);
+CO_ERR COObjWrBufCont(CO_OBJ *obj, struct CO_NODE_T *node, const uint8_t *buffer, uint32_t len);
 
 /*! \brief TYPE SPECIFIC SDO ABORT CODE
 *
@@ -476,7 +476,7 @@ uint32_t COObjGetSize(CO_OBJ *obj, struct CO_NODE_T *node, uint32_t width);
 * \retval   =CO_ERR_NONE    Successfully operation
 * \retval  !=CO_ERR_NONE    An error is detected
 */
-CO_ERR COObjRdValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, uint8_t width);
+CO_ERR COObjRdValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, uint32_t width);
 
 /*! \brief  WRITE VALUE TO OBJECT ENTRY
 *
@@ -497,7 +497,23 @@ CO_ERR COObjRdValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, u
 * \retval   =CO_ERR_NONE    Successfully operation
 * \retval  !=CO_ERR_NONE    An error is detected
 */
-CO_ERR COObjWrValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *value, uint8_t width);
+CO_ERR COObjWrValue(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *value, uint32_t width);
+
+/******************************************************************************
+* CALLBACK FUNCTIONS
+******************************************************************************/
+
+/*! \brief  OBJECT ENTRY AFTER SUCCESSFUL WRITE CALLBACK
+*
+*    This function performs any actions needed after a successful write
+*
+* \param obj
+*    pointer to the object dictionary entry
+*
+* \param node
+*    reference to parent node
+*/
+extern void COObjUpdated(struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 #ifdef __cplusplus               /* for compatibility with C++ environments  */
 }

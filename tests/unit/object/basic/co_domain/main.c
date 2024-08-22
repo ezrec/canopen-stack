@@ -228,7 +228,6 @@ void test_reset_offset(void)
 {
     CO_NODE    AppNode = { 0 };
     uint8_t    mem[8] = { 0 };
-    uint8_t    var[8] = { 1,2,3,4,5,6,7,8 };
     CO_OBJ_DOM data = { 4, sizeof(mem), (uint8_t *)&mem[0] };
     CO_OBJ     Obj  = { CO_KEY(0, 0, CO_OBJ_____RW), CO_TDOMAIN, (CO_DATA)(&data)};
     CO_ERR     err;

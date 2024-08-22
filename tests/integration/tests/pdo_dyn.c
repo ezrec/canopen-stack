@@ -524,7 +524,6 @@ TS_DEF_MAIN(TS_RPdo_BadIdIdxCfg)
 
 TS_DEF_MAIN(TS_TPdo_BadIdIdxCfg)
 {
-    int16_t  result;
     CO_NODE  node;
     uint32_t pdo_id      = 0x40000180;
     uint8_t  pdo_type    = 1;

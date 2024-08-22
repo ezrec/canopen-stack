@@ -36,7 +36,7 @@
 /* type functions */
 static uint32_t COTParaStoreSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTParaStoreRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTParaStoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTParaStoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTParaStoreInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 static CO_ERR   COTParaStoreReset(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t para);
 
@@ -82,7 +82,7 @@ static CO_ERR COTParaStoreRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, voi
     return (result);
 }
 
-static CO_ERR COTParaStoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTParaStoreWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint8 = CO_TUNSIGNED8;
     CO_ERR    result = CO_ERR_TYPE_WR;
@@ -174,8 +174,11 @@ static CO_ERR COTParaStoreReset(struct CO_OBJ_T *obj, struct CO_NODE_T *node, ui
 
     /* we use reset on subindex 0 to load all parameter groups of a given type */
     if (CO_DEV(COT_OBJECT, 0) == CO_GET_DEV(obj->Key)) {
-        result = CONodeParaLoad(node, para);
+        result = CONodeParaLoad(node, (enum CO_NMT_RESET_T)para);
+    } else {
+        result = CO_ERR_NONE;
     }
+
     return (result);
 }
 

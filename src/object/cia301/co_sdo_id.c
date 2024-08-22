@@ -35,7 +35,7 @@
 /* type functions */
 static uint32_t COTSdoIdSize (struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_t width);
 static CO_ERR   COTSdoIdRead (struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
-static CO_ERR   COTSdoIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size);
+static CO_ERR   COTSdoIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size);
 static CO_ERR   COTSdoIdInit (struct CO_OBJ_T *obj, struct CO_NODE_T *node);
 
 /******************************************************************************
@@ -60,7 +60,7 @@ static CO_ERR COTSdoIdRead(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *b
     return uint32->Read(obj, node, buffer, size);
 }
 
-static CO_ERR COTSdoIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buffer, uint32_t size)
+static CO_ERR COTSdoIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buffer, uint32_t size)
 {
     const CO_OBJ_TYPE *uint32 = CO_TUNSIGNED32;
     CO_ERR    err = CO_ERR_NONE;
@@ -74,12 +74,12 @@ static CO_ERR COTSdoIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *
     ASSERT_EQU_ERR(size, 4u, CO_ERR_BAD_ARG);
 
     newval = *(uint32_t *)buffer;
-    (void)uint32->Read(obj, node, &curval, sizeof(curval));
+    (void)uint32->Read(obj, node, &curval, 4);
     num = CO_GET_IDX(obj->Key) & 0x7F;
 
     if ((curval & CO_SDO_ID_OFF) == 0) {
         if ((newval & CO_SDO_ID_OFF) != 0) {
-            err = uint32->Write(obj, node, &newval, sizeof(newval));
+            err = uint32->Write(obj, node, &newval, 4);
             if (err == CO_ERR_NONE) {
                 COSdoReset(node->Sdo, num, node);
             }
@@ -87,7 +87,7 @@ static CO_ERR COTSdoIdWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *
             return (CO_ERR_OBJ_RANGE);
         }
     } else {
-        err = uint32->Write(obj, node, &newval, sizeof(newval));
+        err = uint32->Write(obj, node, &newval, 4);
     }
     if (err == CO_ERR_NONE) {
         COSdoEnable(node->Sdo, num);

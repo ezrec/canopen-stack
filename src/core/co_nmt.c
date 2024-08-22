@@ -103,7 +103,7 @@ void CONmtReset(CO_NMT *nmt, CO_NMT_RESET type)
         }
 
 #if USE_LSS
-        err = COLssLoad(&nmt->Node->Baudrate, &nmt->Node->NodeId);
+        err = COLssLoad(&nmt->Node->Lss, &nmt->Node->Baudrate, &nmt->Node->NodeId);
         if (err != CO_ERR_NONE) {
             nmt->Node->Error = CO_ERR_LSS_LOAD;
         }
@@ -221,6 +221,9 @@ void CONmtSetNodeId(CO_NMT *nmt, uint8_t nodeId)
     } else {
         nmt->Node->NodeId = nodeId;
     }
+
+    // Reset the CAN interface (provide an opportunity to change CAN filters based on Node ID)
+    COIfCanReset(&nmt->Node->If);
 }
 
 uint8_t CONmtGetNodeId(CO_NMT *nmt)

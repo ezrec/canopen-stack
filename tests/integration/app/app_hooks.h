@@ -57,17 +57,18 @@ extern "C" {
 ******************************************************************************/
 
 typedef struct TS_CALLBACK_T {
+    CO_NODE    *NodeFatalError_ArgNode;
     uint32_t    NodeFatalError_Called;
 
-    uint32_t    TmrLock_Called;
-    uint32_t    TmrUnlock_Called;
-
+    CO_IF      *IfCanReceive_ArgIf;
     CO_IF_FRM  *IfCanReceive_ArgFrm;
     uint32_t    IfCanReceive_Called;
 
+    CO_TPDO    *PdoTransmit_ArgTpdo;
     CO_IF_FRM  *PdoTransmit_ArgFrm;
     uint32_t    PdoTransmit_Called;
 
+    CO_RPDO    *PdoReceive_ArgRpdo;
     CO_IF_FRM  *PdoReceive_ArgFrm;
     uint32_t    PdoReceive_Called;
     int16_t     PdoReceive_Return;
@@ -89,11 +90,13 @@ typedef struct TS_CALLBACK_T {
     CO_MODE     NmtHbConsChange_ArgState;
     uint32_t    NmtHbConsChange_Called;
 
+    CO_LSS     *LssStore_ArgLss;
     uint32_t    LssStore_ArgBaudrate;
     uint8_t     LssStore_ArgNodeId;
     uint32_t    LssStore_Called;
     int16_t     LssStore_Return;
 
+    CO_LSS     *LssLoad_ArgLss;
     uint32_t   *LssLoad_ArgBaudrate;
     uint8_t    *LssLoad_ArgNodeId;
     uint32_t    LssLoad_Called;
@@ -131,9 +134,6 @@ typedef struct TS_CALLBACK_T {
 
 void TS_CallbackInit  (TS_CALLBACK *cb);
 void TS_CallbackDeInit(void);
-
-void COTmrLock  (void);
-void COTmrUnlock(void);
 
 /* Application callbacks provided via function argument: */
 void TS_AppCSdoCallback(CO_CSDO *csdo, uint16_t index, uint8_t sub, uint32_t code);

@@ -279,7 +279,7 @@ int16_t COEmcyCnt(CO_EMCY *emcy)
 void COEmcyReset(CO_EMCY *emcy, uint8_t silent)
 {
     int16_t change;
-    uint8_t n;
+    uint16_t n;
 
     ASSERT_PTR(emcy);
 

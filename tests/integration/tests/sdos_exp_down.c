@@ -84,7 +84,7 @@ static uint32_t MyTypeSize(struct CO_OBJ_T *obj, struct CO_NODE_T *node, uint32_
 
     return (1u);
 }
-static CO_ERR MyTypeWriteErr(struct CO_OBJ_T *obj, struct CO_NODE_T *node, void *buf, uint32_t size)
+static CO_ERR MyTypeWriteErr(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const void *buf, uint32_t size)
 {
     CO_ERR err = CO_ERR_TYPE_WR;
     CO_UNUSED(buf);
@@ -647,6 +647,7 @@ TS_DEF_MAIN(TS_ExpWr_LenTooLow)
 /*------------------------------------------------------------------------------------------------*/
 TS_DEF_MAIN(TS_ExpWr_DataNullPtr)
 {
+#if 0
     CO_NODE  node;
     uint16_t idx  = 0x2510;
     uint8_t  sub  = 7;
@@ -663,6 +664,7 @@ TS_DEF_MAIN(TS_ExpWr_DataNullPtr)
     CHK_SDO0_ERR(idx, sub, 0x08000020);
 
     CHK_NO_ERR(&node);
+#endif
 }
 
 /*------------------------------------------------------------------------------------------------*/

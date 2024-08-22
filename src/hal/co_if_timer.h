@@ -33,12 +33,14 @@ extern "C" {
 
 struct CO_IF_T;                /* Declaration of interface structure         */
 
-typedef void     (*CO_IF_TIMER_INIT_FUNC  )(uint32_t);
-typedef void     (*CO_IF_TIMER_RELOAD_FUNC)(uint32_t);
-typedef uint32_t (*CO_IF_TIMER_DELAY_FUNC )(void);
-typedef void     (*CO_IF_TIMER_STOP_FUNC  )(void);
-typedef void     (*CO_IF_TIMER_START_FUNC )(void);
-typedef uint8_t  (*CO_IF_TIMER_UPDATE_FUNC)(void);
+typedef void     (*CO_IF_TIMER_INIT_FUNC  )(struct CO_IF_T *, uint32_t);
+typedef void     (*CO_IF_TIMER_RELOAD_FUNC)(struct CO_IF_T *, uint32_t);
+typedef uint32_t (*CO_IF_TIMER_DELAY_FUNC )(struct CO_IF_T *);
+typedef void     (*CO_IF_TIMER_STOP_FUNC  )(struct CO_IF_T *);
+typedef void     (*CO_IF_TIMER_START_FUNC )(struct CO_IF_T *);
+typedef uint8_t  (*CO_IF_TIMER_UPDATE_FUNC)(struct CO_IF_T *);
+typedef void     (*CO_IF_TIMER_LOCK_FUNC)(struct CO_IF_T *);
+typedef void     (*CO_IF_TIMER_UNLOCK_FUNC)(struct CO_IF_T *);
 
 typedef struct CO_IF_TIMER_DRV_T {
     CO_IF_TIMER_INIT_FUNC   Init;
@@ -47,6 +49,8 @@ typedef struct CO_IF_TIMER_DRV_T {
     CO_IF_TIMER_STOP_FUNC   Stop;
     CO_IF_TIMER_START_FUNC  Start;
     CO_IF_TIMER_UPDATE_FUNC Update;
+    CO_IF_TIMER_LOCK_FUNC   Lock;
+    CO_IF_TIMER_UNLOCK_FUNC Unlock;
 } CO_IF_TIMER_DRV;
 
 /******************************************************************************
