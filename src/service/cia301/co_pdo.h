@@ -187,8 +187,8 @@ typedef struct CO_TPDO_LINK_T {
 typedef struct CO_TPDO_T {
     struct CO_NODE_T *Node;        /*!< link to parent CANopen node          */
     uint32_t          Identifier;  /*!< message identifier                   */
-    struct CO_OBJ_T  *Map[8];      /*!< pointer list with mapped objects     */
-    uint8_t           Size[8];     /*!< size of mapped object value in bytes */
+    struct CO_OBJ_T  *Map[CO_PDO_MAPS];      /*!< pointer list with mapped objects     */
+    uint8_t           Size[CO_PDO_MAPS];     /*!< size of mapped object value in bytes */
     int16_t           EvTmr;       /*!< event timer id                       */
     uint32_t          Event;       /*!< event time in timer ticks            */
     int16_t           InTmr;       /*!< inhibit timer id                     */
@@ -206,8 +206,8 @@ typedef struct CO_TPDO_T {
 typedef struct CO_RPDO_T {
     struct CO_NODE_T *Node;        /*!< link to parent CANopen node          */
     uint32_t          Identifier;  /*!< message identifier                   */
-    struct CO_OBJ_T  *Map[8];      /*!< pointer list with mapped objects     */
-    uint8_t           Size[8];     /*!< size of mapped object value in bytes */
+    struct CO_OBJ_T  *Map[CO_PDO_MAPS];      /*!< pointer list with mapped objects     */
+    uint8_t           Size[CO_PDO_MAPS];     /*!< size of mapped object value in bytes */
     uint8_t           ObjNum;      /*!< Number of linked objects             */
     uint8_t           Flag;        /*!< Flags attributed of PDO              */
 

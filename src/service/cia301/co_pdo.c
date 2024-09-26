@@ -36,7 +36,7 @@ static void COTPdoMapClear(CO_TPDO_LINK *map)
 {
     uint16_t id;
 
-    for (id = 0; id < (CO_TPDO_N << 3); id++) {
+    for (id = 0; id < (CO_TPDO_N * CO_PDO_MAPS); id++) {
         map[id].Obj  = 0;
         map[id].Num  = 0xFFFF;
     }
@@ -63,7 +63,7 @@ void COTPdoInit(CO_TPDO *pdo, CO_NODE *node)
         pdo[num].InTmr      = -1;
         pdo[num].Identifier = CO_TPDO_COBID_OFF;
         pdo[num].ObjNum     = 0;
-        for (on = 0; on < 8; on++) {
+        for (on = 0; on < CO_PDO_MAPS; on++) {
             pdo[num].Map[on]  = 0;
             pdo[num].Size[on] = 0;
         }
@@ -206,7 +206,7 @@ void COTPdoMapAdd(CO_TPDO_LINK *map, CO_OBJ *obj, uint16_t num)
 {
     uint16_t id;
     
-    for (id = 0; id < (CO_TPDO_N << 3); id++) {
+    for (id = 0; id < (CO_TPDO_N * CO_PDO_MAPS); id++) {
         if (map[id].Obj == 0) {
             map[id].Obj = obj;
             map[id].Num = num;
@@ -354,7 +354,7 @@ void COTPdoTrigObj(CO_TPDO *pdo, CO_OBJ *obj)
     uint16_t num;
 
     if (CO_IS_PDOMAP(obj->Key) != 0) {
-        for (n=0; n < (CO_TPDO_N << 3); n++) {
+        for (n=0; n < (CO_TPDO_N * CO_PDO_MAPS); n++) {
             if (pdo->Node->TMap[n].Obj == obj) {
                 num = pdo->Node->TMap[n].Num;
                 COTPdoTrigPdo(pdo, num);

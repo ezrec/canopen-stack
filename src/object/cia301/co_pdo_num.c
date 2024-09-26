@@ -89,7 +89,7 @@ static CO_ERR COTPdoNumWrite(struct CO_OBJ_T *obj, struct CO_NODE_T *node, const
 
     /* check maximal number of linked objects */        
     mapnum = (uint8_t)(*(uint8_t *)buffer);
-    if (mapnum > 8) {
+    if (mapnum > CO_PDO_MAPS) {
         return (CO_ERR_OBJ_MAP_LEN);
     }
 

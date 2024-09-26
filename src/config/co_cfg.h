@@ -44,6 +44,15 @@
 #define CO_EMCY_N              32
 #endif
 
+/*! \brief DEFAULT PDO MAP SIZE.
+*
+*    This configuration define specifies how many mappings per PDOs the library
+*    will support.
+*/
+#ifndef CO_PDO_MAPS
+#define CO_PDO_MAPS             8
+#endif
+
 /*! \brief DEFAULT RECEIVE PDO
 *
 *    This configuration define specifies how many receive PDOs the library

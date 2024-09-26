@@ -92,7 +92,7 @@ typedef struct CO_NODE_T {
 #endif
     struct CO_RPDO_T       RPdo[CO_RPDO_N];      /*!< RPDO Array             */
     struct CO_TPDO_T       TPdo[CO_TPDO_N];      /*!< TPDO Array             */
-    struct CO_TPDO_LINK_T  TMap[CO_TPDO_N * 8];  /*!< TPDO mapping links     */
+    struct CO_TPDO_LINK_T  TMap[CO_TPDO_N * CO_PDO_MAPS];  /*!< TPDO mapping links     */
     struct CO_SYNC_T       Sync;                 /*!< SYNC management        */
 #if USE_LSS
     struct CO_LSS_T        Lss;                  /*!< LSS slave handling     */
